@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OnDebate — 생각이 맞붙는 곳</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root { --ink:#222; --muted:#777; --line:#e5e5e5; --paper:#f6f6f6; --red:#e64b3c; --blue:#3478e5; --yellow:#fff5c9; }
+      * { box-sizing:border-box; } body { margin:0; background:var(--paper); color:var(--ink); font-family:"Noto Sans KR",sans-serif; }
+      header { height:62px; background:#fff; border-bottom:1px solid var(--line); display:flex; align-items:center; padding:0 max(28px,calc((100vw - 1120px)/2)); gap:42px; position:sticky; top:0; z-index:3; }
+      .brand { font:700 22px "Noto Sans KR",sans-serif; letter-spacing:-1.3px; text-decoration:none; color:var(--ink); } .brand i { color:var(--red); font-style:normal; }
+      nav { display:flex; gap:26px; height:100%; align-items:center; } nav a { font-size:14px; text-decoration:none; color:#666; font-weight:500; } nav a.active { color:var(--ink); font-weight:700; }
+      .start { margin-left:auto; background:#3b3b3b; color:#fff; text-decoration:none; border-radius:3px; padding:9px 14px; font-size:13px; font-weight:600; }
+      main { max-width:1120px; margin:0 auto; padding:28px 28px 70px; } .search-area { background:#fff; border:1px solid var(--line); padding:22px; margin-bottom:22px; }
+      .search-area h1 { font-size:16px; margin:0 0 13px; letter-spacing:-.5px; } .search-form { display:flex; max-width:680px; height:43px; } .search-form input { min-width:0; flex:1; border:2px solid #303030; border-right:0; padding:0 13px; font:14px "Noto Sans KR",sans-serif; outline:0; } .search-form button { width:92px; border:0; background:#303030; color:#fff; font:600 13px "Noto Sans KR",sans-serif; cursor:pointer; }
+      .search-hints { margin-top:10px; color:#888; font-size:12px; } .search-hints a { color:#777; text-decoration:none; margin-left:8px; }
+      .layout { display:grid; grid-template-columns:minmax(0,1fr) 255px; gap:24px; } h2 { margin:0; font-size:16px; letter-spacing:-.6px; } .section { background:#fff; border:1px solid var(--line); margin-bottom:20px; } .section > h2 { padding:16px 18px; border-bottom:1px solid var(--line); }
+      .debate { background:#fff; border-bottom:1px solid var(--line); padding:17px 18px; transition:.15s; } .debate:last-child { border-bottom:0; } .debate:hover { background:#fafafa; }
+      .meta { display:flex; align-items:center; gap:8px; font-size:11px; color:var(--muted); } .badge { border-radius:4px; padding:3px 6px; font-size:10px; font-weight:800; } .live { background:#fff0ec; color:#d9422e; } .waiting { background:#edf3ff; color:#3970c9; }
+      .debate h3 { font-size:15px; letter-spacing:-.55px; margin:8px 0 9px; font-weight:600; } .debate-link { color:inherit; text-decoration:none; } .debate-link:hover { text-decoration:underline; } .debate-note { color:#888; font-size:12px; } .stats { margin-left:auto; color:var(--muted); font-size:11px; font-weight:500; }
+      .category-grid { display:grid; grid-template-columns:repeat(2,1fr); } .category { background:#fff; padding:15px 18px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); } .category:nth-child(2n) { border-right:0; } .category:nth-last-child(-n+2) { border-bottom:0; } .category b { display:block; font-size:14px; margin-bottom:5px; } .category span { font-size:11px; color:var(--muted); }
+      aside { background:#fff; border:1px solid var(--line); height:max-content; } aside h2 { padding:16px; border-bottom:1px solid var(--line); } .rank { display:flex; align-items:center; gap:9px; padding:10px 14px; border-bottom:1px solid var(--line); } .rank strong { width:18px; font:500 12px "DM Mono"; color:var(--muted); } .avatar { width:28px; height:28px; border-radius:3px; display:grid; place-items:center; font-size:11px; font-weight:800; background:#f2e5ce; } .rank:nth-child(3) .avatar { background:#e8edf9; } .rank:nth-child(4) .avatar { background:#e5f0e7; } .user { min-width:0; } .user b { font-size:12px; display:block; } .user span { color:var(--muted); font-size:10px; } .points { margin-left:auto; color:#b97b00; font:11px "DM Mono"; }
+      .guide { background:var(--yellow); border-top:1px solid var(--line); padding:15px; } .guide b { font-size:12px; display:block; margin-bottom:5px; } .guide p { font-size:11px; margin:0; line-height:1.6; color:#555; }
+      @media (max-width:760px) { header { padding:0 18px; gap:20px; } nav { gap:15px; } nav a:nth-child(3) { display:none; } .start { padding:8px 10px; font-size:12px; } main { padding:18px; } .layout { display:block; } aside { margin-top:20px; } .category-grid { grid-template-columns:1fr; } .category, .category:nth-child(2n) { border-right:0; } .category:nth-last-child(-n+2) { border-bottom:1px solid var(--line); } .category:last-child { border-bottom:0; } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="#">On<i>Debate</i></a>
+      <nav><a class="active" href="#">홈</a><a href="#popular">인기 토론</a><a href="#categories">카테고리</a></nav>
+      <a class="start" href="login.html">로그인</a><a class="start" href="create-debate.html">토론 시작하기</a>
+    </header>
+    <main>
+      <section class="search-area">
+        <h1>토론 주제 검색</h1>
+        <form class="search-form"><input type="search" placeholder="궁금한 토론 주제를 검색하세요" aria-label="토론 주제 검색" /><button type="submit">검색</button></form>
+        <div class="search-hints">인기 검색어 <a href="#">연애</a><a href="#">정치</a><a href="#">게임</a><a href="#">직장</a></div>
+      </section>
+      <div class="layout">
+        <div>
+          <section class="section" id="popular"><h2>지금 뜨거운 토론</h2><div id="popular-list">
+            <article class="debate"><div class="meta"><span class="badge live">● 진행 중</span> 사회 · 3시간 24분 남음 <span class="stats">댓글 48 · 투표 156</span></div><h3><a class="debate-link" href="debate-detail.html">청소년의 스마트폰 사용은 법으로 제한해야 한다</a></h3><div class="debate-note">현재 24개의 발언이 등록되었습니다.</div></article>
+            <article class="debate"><div class="meta"><span class="badge live">● 진행 중</span> 문화 · 7시간 10분 남음 <span class="stats">댓글 31 · 투표 89</span></div><h3>영화는 극장에서 봐야 제대로 즐긴 것이다</h3><div class="debate-note">현재 16개의 발언이 등록되었습니다.</div></article>
+            <article class="debate"><div class="meta"><span class="badge waiting">상대 모집 중</span> 일상 · 23시간 41분 남음 <span class="stats">댓글 6</span></div><h3>친구 사이에 돈을 빌려주는 일은 없어야 한다</h3><div class="debate-note">첫 번째 반박을 남기면 토론이 시작됩니다.</div></article></div>
+          </section>
+          <section class="section" id="categories"><h2>카테고리별 새 토론</h2><div class="category-grid"><div class="category"><b>사회 · 정치</b><span>새 토론 12개</span></div><div class="category"><b>문화 · 엔터</b><span>새 토론 8개</span></div><div class="category"><b>연애 · 인간관계</b><span>새 토론 17개</span></div><div class="category"><b>게임 · 스포츠</b><span>새 토론 9개</span></div></div></section>
+        </div>
+        <aside><h2>이번 주 랭킹</h2><div class="rank"><strong>01</strong><span class="avatar">민</span><div class="user"><b>민트초코</b><span>승률 72%</span></div><span class="points">42.8K</span></div><div class="rank"><strong>02</strong><span class="avatar">논</span><div class="user"><b>논리왕김토론</b><span>승률 68%</span></div><span class="points">39.1K</span></div><div class="rank"><strong>03</strong><span class="avatar">단</span><div class="user"><b>단호박</b><span>승률 65%</span></div><span class="points">35.7K</span></div><div class="guide"><b>키보드 배틀, 이렇게 해요</b><p>주장을 올리고 반박을 기다리세요. 토론은 최대 24시간 진행되며, 관전자는 승자를 투표합니다.</p></div></aside>
+      </div>
+    </main>
+    <script type="module">
+      import { supabase } from './supabase.js';
+      const list = document.getElementById('popular-list');
+      const { data: debates } = await supabase.from('debates').select('id,title,category,status,ends_at,created_at').neq('status', 'hidden').order('created_at', { ascending: false }).limit(20);
+      if (debates?.length) {
+        list.replaceChildren();
+        debates.forEach(debate => {
+          const article = document.createElement('article'); article.className = 'debate';
+          const meta = document.createElement('div'); meta.className = 'meta';
+          const badge = document.createElement('span'); badge.className = `badge ${debate.status === 'waiting' ? 'waiting' : 'live'}`; badge.textContent = debate.status === 'waiting' ? '상대 모집 중' : '● 진행 중';
+          const remain = Math.max(0, new Date(debate.ends_at) - Date.now()); const hours = Math.floor(remain / 3600000); const minutes = Math.floor(remain % 3600000 / 60000);
+          meta.append(badge, document.createTextNode(` ${debate.category} · ${hours}시간 ${minutes}분 남음`));
+          const heading = document.createElement('h3'); const link = document.createElement('a'); link.className = 'debate-link'; link.href = `debate-detail.html?id=${debate.id}`; link.textContent = debate.title; heading.append(link);
+          const note = document.createElement('div'); note.className = 'debate-note'; note.textContent = debate.status === 'waiting' ? '첫 번째 반박을 남기면 토론이 시작됩니다.' : '진행 중인 토론입니다.';
+          article.append(meta, heading, note); list.append(article);
+        });
+      }
+    </script>
+  </body>
+</html>
+
