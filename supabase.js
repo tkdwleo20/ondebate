@@ -6,13 +6,22 @@ export const supabase = createClient(
   'sb_publishable_cJv4iU4Aod6RVY8se0TiZg_oXS0Ukdk'
 );
 
-export async function ensureProfile() {
+export async function getProfile() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
-  const nickname = `토론자${user.id.replaceAll('-', '').slice(0, 6)}`;
-  const { error } = await supabase.from('profiles').upsert({ id: user.id, nickname });
+  const { data, error } = await supabase.from('profiles').select('id,nickname,points').eq('id', user.id).maybeSingle();
   if (error) throw error;
-  return user;
+  return data;
+}
+
+export async function saveNickname(nickname) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('로그인이 필요합니다.');
+  const cleanNickname = nickname.trim();
+  if (cleanNickname.length < 2 || cleanNickname.length > 20) throw new Error('닉네임은 2~20자로 입력해 주세요.');
+  const { error } = await supabase.from('profiles').upsert({ id: user.id, nickname: cleanNickname });
+  if (error) throw error;
+  return cleanNickname;
 }
 
 export async function mountAuthState(targetId) {
@@ -20,8 +29,12 @@ export async function mountAuthState(targetId) {
   if (!target) return;
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
-  const profile = await ensureProfile();
-  const nickname = `토론자${profile.id.replaceAll('-', '').slice(0, 6)}`;
+  const profile = await getProfile();
+  if (!profile || /^토론자[0-9a-f]{6}$/i.test(profile.nickname)) {
+    location.href = `nickname.html?next=${encodeURIComponent(location.pathname.split('/').pop() || 'index.html')}`;
+    return;
+  }
+  const nickname = profile.nickname;
   target.innerHTML = `<button class="account-button" type="button">${nickname} · 로그아웃</button>`;
   target.querySelector('button').addEventListener('click', async () => {
     await supabase.auth.signOut();
