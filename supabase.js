@@ -35,8 +35,8 @@ export async function mountAuthState(targetId) {
     return;
   }
   const nickname = profile.nickname;
-  target.innerHTML = `<button class="account-button" type="button">${nickname} · 로그아웃</button>`;
-  target.querySelector('button').addEventListener('click', async () => {
+  target.innerHTML = `<a class="account-link" href="my.html">${nickname}</a><button class="logout-button" type="button">로그아웃</button>`;
+  target.querySelector('.logout-button').addEventListener('click', async () => {
     await supabase.auth.signOut();
     location.href = 'index.html';
   });
