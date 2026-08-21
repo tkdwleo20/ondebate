@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>청소년의 스마트폰 사용은 법으로 제한해야 한다 — OnDebate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root { --ink:#222; --muted:#777; --line:#e5e5e5; --paper:#f6f6f6; --red:#d85a50; --red-bg:#fff5f3; --blue:#4b79ba; --blue-bg:#f3f7ff; }
+      * { box-sizing:border-box; } body { margin:0; background:var(--paper); color:var(--ink); font-family:"Noto Sans KR",sans-serif; } button,input { font:inherit; }
+      header { height:62px; background:#fff; border-bottom:1px solid var(--line); display:flex; align-items:center; padding:0 max(28px,calc((100vw - 980px)/2)); gap:42px; position:sticky; top:0; z-index:3; }
+      .brand { font:700 22px "Noto Sans KR",sans-serif; letter-spacing:-1.3px; text-decoration:none; color:var(--ink); } .brand i { color:var(--red); font-style:normal; } nav { display:flex; gap:26px; align-items:center; } nav a { color:#666; text-decoration:none; font-size:14px; } nav a.active { color:#222; font-weight:700; } .start { margin-left:auto; background:#3b3b3b; color:#fff; text-decoration:none; border-radius:3px; padding:9px 14px; font-size:13px; font-weight:600; }
+      main { width:min(980px,calc(100% - 36px)); margin:25px auto 70px; } .post { background:#fff; border:1px solid var(--line); } .topic { padding:23px 24px 20px; border-bottom:1px solid var(--line); } .crumb { color:#888; font-size:12px; margin-bottom:10px; } h1 { margin:0; font-size:22px; letter-spacing:-1px; line-height:1.4; } .topic-info { display:flex; align-items:center; gap:13px; margin-top:16px; color:#777; font-size:12px; } .live { color:#cf493c; font-weight:700; } .vote-count { margin-left:auto; color:#666; }
+      .timeline { padding:24px; background:#fcfcfc; } .timeline-label { color:#888; font-size:12px; text-align:center; margin:0 0 17px; } .message-row { display:flex; margin:13px 0; } .message-row.right { justify-content:flex-end; } .message { width:min(78%,590px); } .message-box { padding:13px 15px; border:1px solid var(--line); border-radius:5px; background:#fff; font-size:14px; line-height:1.7; letter-spacing:-.2px; } .left .message-box { border-left:3px solid var(--red); } .right .message-box { border-right:3px solid var(--blue); background:var(--blue-bg); } .message-meta { display:flex; align-items:center; gap:7px; margin-top:6px; color:#999; font-size:11px; } .right .message-meta { justify-content:flex-end; } .reply-toggle { border:0; background:none; padding:0; color:#777; cursor:pointer; font-size:11px; } .reply-toggle:hover { text-decoration:underline; }
+      .inline-replies { display:none; margin-top:9px; border:1px solid #e8e8e8; background:#fff; padding:10px; } .inline-replies.open { display:block; } .reply { border-bottom:1px solid #eee; padding:0 0 8px; margin-bottom:8px; font-size:12px; line-height:1.55; } .reply:last-of-type { border-bottom:0; } .reply b { margin-right:6px; font-size:11px; } .reply-form { display:flex; gap:6px; margin-top:5px; } .reply-form input { min-width:0; flex:1; height:30px; border:1px solid #d4d4d4; padding:0 8px; font-size:12px; } .reply-form button { border:1px solid #555; background:#555; color:#fff; padding:0 10px; font-size:11px; cursor:pointer; }
+      .section { margin-top:18px; background:#fff; border:1px solid var(--line); } .section h2 { margin:0; font-size:16px; padding:17px 20px; border-bottom:1px solid var(--line); } .winner { padding:20px; } .winner p { margin:0 0 15px; color:#666; font-size:13px; } .vote-options { display:grid; grid-template-columns:1fr 1fr; gap:9px; } .vote-option { text-align:left; background:#fff; border:1px solid #dadada; padding:13px; cursor:pointer; } .vote-option b { display:block; font-size:14px; margin-bottom:4px; } .vote-option span { font-size:12px; color:#777; } .vote-option:first-child { border-left:3px solid var(--red); } .vote-option:last-child { border-right:3px solid var(--blue); } .vote-option:hover { background:#fafafa; }
+      .comments { padding:0 20px 20px; } .comment { padding:15px 0; border-bottom:1px solid var(--line); } .comment-head { font-size:12px; } .comment-head b { margin-right:7px; } .comment-head span { color:#999; } .comment p { font-size:13px; margin:7px 0 0; line-height:1.6; } .comment-form { padding:16px 20px; background:#fafafa; border-top:1px solid var(--line); display:flex; gap:7px; } .comment-form input { min-width:0; flex:1; height:39px; border:1px solid #d8d8d8; padding:0 10px; font-size:13px; } .comment-form button { border:0; background:#3b3b3b; color:#fff; padding:0 15px; font-size:12px; cursor:pointer; }
+      @media(max-width:700px) { header { padding:0 18px; gap:20px; } nav { gap:15px; } nav a:last-child { display:none; } .start { padding:8px 10px; font-size:12px; } main { width:calc(100% - 24px); margin-top:12px; } .topic,.timeline { padding:18px 14px; } h1 { font-size:19px; } .topic-info { flex-wrap:wrap; gap:7px 10px; } .vote-count { margin-left:0; } .message { width:92%; } .message-box { font-size:13px; } .comments { padding:0 14px 14px; } .comment-form { padding:14px; } }
+    </style>
+  </head>
+  <body>
+    <header><a class="brand" href="index.html">On<i>Debate</i></a><nav><a class="active" href="index.html">홈</a><a href="#">인기 토론</a><a href="#">카테고리</a></nav><a class="start" href="login.html">로그인</a><a class="start" href="create-debate.html">토론 시작하기</a></header>
+    <main>
+      <article class="post">
+        <div class="topic"><div class="crumb" id="topic-category">사회 · 교육</div><h1 id="topic-title">청소년의 스마트폰 사용은 법으로 제한해야 한다</h1><div class="topic-info"><span class="live">● 진행 중</span><span id="remaining-time">마감까지 3시간 24분</span><span class="vote-count">관전자 투표 156</span></div></div>
+        <section class="timeline"><p class="timeline-label">토론 발언 24개 · 관전자 댓글은 발언별로 남길 수 있습니다.</p>
+          <div class="message-row left"><div class="message"><div class="message-box" id="opening-message">수업 시간뿐 아니라 쉬는 시간에도 스마트폰에 과하게 의존하는 학생이 많습니다. 학습권과 건강을 위해 최소한 학교 내 사용 기준은 법으로 정할 필요가 있습니다.</div><div class="message-meta"><span>오후 1:04</span><button class="reply-toggle" data-target="replies-1">관전 댓글 7</button></div><div class="inline-replies" id="replies-1"><div class="reply"><b>토론구경꾼</b>학교마다 자율 규정으로는 부족하다는 말에는 동의해요.</div><div class="reply"><b>고양이발바닥</b>법으로 정하면 오히려 현장 상황을 반영하기 어렵지 않을까요?</div><form class="reply-form"><input placeholder="이 발언에 댓글 남기기" /><button type="submit">등록</button></form></div></div></div>
+          <div class="message-row right"><div class="message"><div class="message-box">문제의 원인을 스마트폰 자체로 한정하면 안 됩니다. 일률적인 법적 제한보다 디지털 리터러시 교육과 가정·학교의 협력이 먼저라고 봅니다.</div><div class="message-meta"><button class="reply-toggle" data-target="replies-2">관전 댓글 3</button><span>오후 1:11</span></div><div class="inline-replies" id="replies-2"><div class="reply"><b>알고리즘</b>교육만으로 충분할지는 모르겠네요.</div><form class="reply-form"><input placeholder="이 발언에 댓글 남기기" /><button type="submit">등록</button></form></div></div></div>
+          <div class="message-row left"><div class="message"><div class="message-box">교육의 필요성에는 동의합니다. 다만 교육과 제한은 양자택일이 아닙니다. 운전 중 휴대전화 사용처럼, 미성년자의 특정 시간·공간에서 최소 기준을 정할 수 있습니다.</div><div class="message-meta"><span>오후 1:22</span><button class="reply-toggle" data-target="replies-3">관전 댓글 1</button></div><div class="inline-replies" id="replies-3"><div class="reply"><b>주말엔토론</b>구체적으로 어느 공간까지 제한할지 궁금합니다.</div><form class="reply-form"><input placeholder="이 발언에 댓글 남기기" /><button type="submit">등록</button></form></div></div></div>
+        </section>
+      </article>
+      <section class="section"><h2>누가 더 설득력 있었나요?</h2><div class="winner"><p>토론 종료 전까지 관전자 한 표를 행사할 수 있습니다.</p><div class="vote-options"><button class="vote-option"><b>왼쪽 주장에 투표</b><span>현재 83표</span></button><button class="vote-option"><b>오른쪽 주장에 투표</b><span>현재 73표</span></button></div></div></section>
+      <section class="section"><h2>관전자 댓글 <span style="color:#888;font-size:12px;font-weight:500">48</span></h2><div class="comments"><div class="comment"><div class="comment-head"><b>바른말</b><span>8분 전</span></div><p>둘 다 일리가 있지만 실제 적용 기준이 좀 더 구체적으로 나왔으면 좋겠네요.</p></div><div class="comment"><div class="comment-head"><b>오늘의논쟁</b><span>18분 전</span></div><p>스마트폰 문제를 법으로 해결할 수 있는지에 대한 논의가 더 필요해 보입니다.</p></div></div><form class="comment-form"><input placeholder="토론 전체에 대한 의견을 남겨주세요" /><button type="submit">등록</button></form></section>
+    </main>
+    <script type="module">
+      import { supabase } from './supabase.js';
+      const debateId = new URLSearchParams(location.search).get('id');
+      if (debateId) {
+        const { data: debate } = await supabase.from('debates').select('title,category,ends_at,debate_messages(body,created_at,side)').eq('id', debateId).single();
+        if (debate) {
+          document.getElementById('topic-title').textContent = debate.title;
+          document.getElementById('topic-category').textContent = debate.category;
+          const remain = Math.max(0, new Date(debate.ends_at) - Date.now());
+          document.getElementById('remaining-time').textContent = `마감까지 ${Math.floor(remain / 3600000)}시간 ${Math.floor(remain % 3600000 / 60000)}분`;
+          const firstMessage = debate.debate_messages.sort((a,b) => new Date(a.created_at) - new Date(b.created_at))[0];
+          if (firstMessage) document.getElementById('opening-message').textContent = firstMessage.body;
+        }
+      }
+      document.querySelectorAll('.reply-toggle').forEach(button => button.addEventListener('click', () => document.getElementById(button.dataset.target).classList.toggle('open')));
+      document.querySelectorAll('form').forEach(form => form.addEventListener('submit', event => { event.preventDefault(); const input = form.querySelector('input'); if (!input || !input.value.trim()) return; const reply = document.createElement('div'); reply.className = 'reply'; reply.innerHTML = '<b>나</b>' + input.value.trim(); form.before(reply); input.value = ''; }));
+    </script>
+  </body>
+</html>
+
