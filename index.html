@@ -43,7 +43,7 @@
         <div>
           <section class="section" id="popular"><h2 id="list-title">지금 뜨거운 토론</h2><div id="popular-list"></div>
           </section>
-          <section class="section" id="categories"><h2>카테고리별 새 토론</h2><div class="category-grid" id="category-list"></div></section>
+          <section class="section" id="categories"><h2>카테고리별 토론</h2><div class="category-grid" id="category-list"></div></section>
         </div>
         <aside><h2>이번 주 랭킹</h2><div class="rank"><strong>01</strong><span class="avatar">민</span><div class="user"><b>민트초코</b><span>승률 72%</span></div><span class="points">42.8K</span></div><div class="rank"><strong>02</strong><span class="avatar">논</span><div class="user"><b>논리왕김토론</b><span>승률 68%</span></div><span class="points">39.1K</span></div><div class="rank"><strong>03</strong><span class="avatar">단</span><div class="user"><b>단호박</b><span>승률 65%</span></div><span class="points">35.7K</span></div><div class="guide"><b>키보드 배틀, 이렇게 해요</b><p>주장을 올리고 반박을 기다리세요. 토론은 최대 24시간 진행되며, 관전자는 승자를 투표합니다.</p></div></aside>
       </div>
@@ -53,22 +53,18 @@
       import { supabase, mountAuthState } from './supabase.js';
       mountAuthState('auth-area');
       const list = document.getElementById('popular-list');
-      const listTitle = document.getElementById('list-title');
       const categoryList = document.getElementById('category-list');
       const categories = ['일상', '사회 · 정치', '연애', '문화 · 취미', '게임 · 스포츠', '학교 · 직장'];
-      let selectedCategory = null;
       const { data: debates, error: debatesError } = await supabase.from('debates').select('id,title,category,status,ends_at,created_at').neq('status', 'hidden').order('created_at', { ascending: false }).limit(100);
 
       const allDebates = debates ?? [];
       function renderDebates() {
-        const visibleDebates = selectedCategory ? allDebates.filter(debate => debate.category === selectedCategory) : allDebates;
-        listTitle.textContent = selectedCategory ? `${selectedCategory} 토론` : '지금 뜨거운 토론';
         list.replaceChildren();
-        if (!visibleDebates.length) {
-          list.textContent = selectedCategory ? `${selectedCategory} 카테고리에 아직 등록된 토론이 없습니다.` : '아직 등록된 토론이 없습니다.';
+        if (!allDebates.length) {
+          list.textContent = '아직 등록된 토론이 없습니다.';
           return;
         }
-        visibleDebates.forEach(debate => {
+        allDebates.forEach(debate => {
           const article = document.createElement('article'); article.className = 'debate debate-card'; article.tabIndex = 0; article.setAttribute('role', 'link');
           const meta = document.createElement('div'); meta.className = 'meta';
           const ended = new Date(debate.ends_at) <= new Date();
@@ -89,12 +85,7 @@
           const button = document.createElement('button'); button.type = 'button'; button.className = 'category';
           const count = allDebates.filter(debate => debate.category === category).length;
           button.innerHTML = `<b>${category}</b><span>새 토론 ${count}개</span>`;
-          button.addEventListener('click', () => {
-            selectedCategory = selectedCategory === category ? null : category;
-            categoryList.querySelectorAll('.category').forEach(item => item.classList.toggle('active', item === button && selectedCategory === category));
-            renderDebates();
-            document.getElementById('popular').scrollIntoView({ behavior:'smooth', block:'start' });
-          });
+          button.addEventListener('click', () => { location.href = `category.html?name=${encodeURIComponent(category)}`; });
           categoryList.append(button);
         });
         renderDebates();
