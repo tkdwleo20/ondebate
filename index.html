@@ -18,8 +18,8 @@
       .search-area h1 { font-size:16px; margin:0 0 13px; letter-spacing:-.5px; } .search-form { display:flex; max-width:680px; height:43px; } .search-form input { min-width:0; flex:1; border:2px solid #303030; border-right:0; padding:0 13px; font:14px "Noto Sans KR",sans-serif; outline:0; } .search-form button { width:92px; border:0; background:#303030; color:#fff; font:600 13px "Noto Sans KR",sans-serif; cursor:pointer; }
       .search-hints { margin-top:10px; color:#888; font-size:12px; } .search-hints a { color:#777; text-decoration:none; margin-left:8px; }
       .layout { display:grid; grid-template-columns:minmax(0,1fr) 255px; gap:24px; } h2 { margin:0; font-size:16px; letter-spacing:-.6px; } .section { background:#fff; border:1px solid var(--line); margin-bottom:20px; } .section > h2 { padding:16px 18px; border-bottom:1px solid var(--line); }
-      .debate { background:#fff; border-bottom:1px solid var(--line); padding:17px 18px; transition:.15s; } .debate:last-child { border-bottom:0; } .debate:hover { background:#fafafa; }
-      .meta { display:flex; align-items:center; gap:8px; font-size:11px; color:var(--muted); } .badge { border-radius:4px; padding:3px 6px; font-size:10px; font-weight:800; } .live { background:#fff0ec; color:#d9422e; } .waiting { background:#edf3ff; color:#3970c9; }
+      .debate { background:#fff; border-bottom:1px solid var(--line); padding:17px 18px; transition:.15s; } .debate:last-child { border-bottom:0; } .debate:hover { background:#fafafa; } .debate-card { cursor:pointer; } .debate-card:focus-visible { outline:2px solid #555; outline-offset:-3px; }
+      .meta { display:flex; align-items:center; gap:8px; font-size:11px; color:var(--muted); } .badge { border-radius:4px; padding:3px 6px; font-size:10px; font-weight:800; } .live { background:#fff0ec; color:#d9422e; } .waiting { background:#edf3ff; color:#3970c9; } .ended { background:#f0f0f0; color:#777; }
       .debate h3 { font-size:15px; letter-spacing:-.55px; margin:8px 0 9px; font-weight:600; } .debate-link { color:inherit; text-decoration:none; } .debate-link:hover { text-decoration:underline; } .debate-note { color:#888; font-size:12px; } .stats { margin-left:auto; color:var(--muted); font-size:11px; font-weight:500; }
       .category-grid { display:grid; grid-template-columns:repeat(2,1fr); } .category { background:#fff; padding:15px 18px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); } .category:nth-child(2n) { border-right:0; } .category:nth-last-child(-n+2) { border-bottom:0; } .category b { display:block; font-size:14px; margin-bottom:5px; } .category span { font-size:11px; color:var(--muted); }
       aside { background:#fff; border:1px solid var(--line); height:max-content; } aside h2 { padding:16px; border-bottom:1px solid var(--line); } .rank { display:flex; align-items:center; gap:9px; padding:10px 14px; border-bottom:1px solid var(--line); } .rank strong { width:18px; font:500 12px "DM Mono"; color:var(--muted); } .avatar { width:28px; height:28px; border-radius:3px; display:grid; place-items:center; font-size:11px; font-weight:800; background:#f2e5ce; } .rank:nth-child(3) .avatar { background:#e8edf9; } .rank:nth-child(4) .avatar { background:#e5f0e7; } .user { min-width:0; } .user b { font-size:12px; display:block; } .user span { color:var(--muted); font-size:10px; } .points { margin-left:auto; color:#b97b00; font:11px "DM Mono"; }
@@ -59,13 +59,15 @@
       if (debates?.length) {
         list.replaceChildren();
         debates.forEach(debate => {
-          const article = document.createElement('article'); article.className = 'debate';
+          const article = document.createElement('article'); article.className = 'debate debate-card'; article.tabIndex = 0; article.setAttribute('role', 'link');
           const meta = document.createElement('div'); meta.className = 'meta';
-          const badge = document.createElement('span'); badge.className = `badge ${debate.status === 'waiting' ? 'waiting' : 'live'}`; badge.textContent = debate.status === 'waiting' ? '상대 모집 중' : '● 진행 중';
+          const ended = new Date(debate.ends_at) <= new Date();
+          const badge = document.createElement('span'); badge.className = `badge ${ended ? 'ended' : (debate.status === 'waiting' ? 'waiting' : 'live')}`; badge.textContent = ended ? '종료된 토론' : (debate.status === 'waiting' ? '상대 모집 중' : '● 진행 중');
           const remain = Math.max(0, new Date(debate.ends_at) - Date.now()); const hours = Math.floor(remain / 3600000); const minutes = Math.floor(remain % 3600000 / 60000);
-          meta.append(badge, document.createTextNode(` ${debate.category} · ${hours}시간 ${minutes}분 남음`));
+          meta.append(badge, document.createTextNode(` ${debate.category} · ${ended ? '토론 종료' : `${hours}시간 ${minutes}분 남음`}`));
           const heading = document.createElement('h3'); const link = document.createElement('a'); link.className = 'debate-link'; link.href = `debate-detail.html?id=${debate.id}`; link.textContent = debate.title; heading.append(link);
-          const note = document.createElement('div'); note.className = 'debate-note'; note.textContent = debate.status === 'waiting' ? '첫 번째 반박을 남기면 토론이 시작됩니다.' : '진행 중인 토론입니다.';
+          const note = document.createElement('div'); note.className = 'debate-note'; note.textContent = ended ? '종료된 토론입니다. 결과와 관전자 의견을 확인해 보세요.' : (debate.status === 'waiting' ? '첫 번째 반박을 남기면 토론이 시작됩니다.' : '진행 중인 토론입니다.');
+          const destination = `debate-detail.html?id=${debate.id}`; article.addEventListener('click', event => { if (!event.target.closest('a')) location.href = destination; }); article.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); location.href = destination; } });
           article.append(meta, heading, note); list.append(article);
         });
       }
