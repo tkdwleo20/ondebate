@@ -1,4 +1,3 @@
-
 -- Run this after supabase-schema.sql in Supabase Dashboard > SQL Editor.
 -- It creates a single safe operation for starting a debate and its first message.
 create or replace function public.create_debate(
@@ -235,4 +234,10 @@ end; $$;
 
 grant execute on function public.toggle_message_like(uuid) to authenticated;
 grant execute on function public.cast_debate_vote(uuid, text) to authenticated;
+
+-- Ensure the home page can read every debate except ones hidden by moderation.
+drop policy if exists "Visible debates are readable" on public.debates;
+create policy "Visible debates are readable" on public.debates
+  for select to anon, authenticated
+  using (status <> 'hidden');
 
