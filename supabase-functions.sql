@@ -126,3 +126,73 @@ $$;
 
 grant execute on function public.record_debate_view(uuid) to anon, authenticated;
 
+-- Spectator comments, nested replies, and hearts for messages and whole debates.
+alter table public.message_comments add column if not exists parent_id uuid references public.message_comments(id) on delete cascade;
+alter table public.message_comments add column if not exists like_count integer not null default 0 check (like_count >= 0);
+alter table public.debate_comments add column if not exists parent_id uuid references public.debate_comments(id) on delete cascade;
+alter table public.debate_comments add column if not exists like_count integer not null default 0 check (like_count >= 0);
+
+create table if not exists public.message_comment_likes (
+  comment_id uuid not null references public.message_comments(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (comment_id, user_id)
+);
+create table if not exists public.debate_comment_likes (
+  comment_id uuid not null references public.debate_comments(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (comment_id, user_id)
+);
+alter table public.message_comment_likes enable row level security;
+alter table public.debate_comment_likes enable row level security;
+drop policy if exists "Users read own message comment likes" on public.message_comment_likes;
+create policy "Users read own message comment likes" on public.message_comment_likes for select to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists "Users read own debate comment likes" on public.debate_comment_likes;
+create policy "Users read own debate comment likes" on public.debate_comment_likes for select to authenticated using ((select auth.uid()) = user_id);
+
+create or replace function public.add_message_comment(p_message_id uuid, p_body text, p_parent_id uuid default null)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare new_id uuid; current_user_id uuid := auth.uid(); parent_message_id uuid;
+begin
+  if current_user_id is null then raise exception '로그인이 필요합니다.'; end if;
+  if char_length(trim(p_body)) not between 1 and 1000 then raise exception '댓글은 1~1,000자로 작성해 주세요.'; end if;
+  if p_parent_id is not null then select message_id into parent_message_id from public.message_comments where id = p_parent_id; if parent_message_id is distinct from p_message_id then raise exception '잘못된 답글 대상입니다.'; end if; end if;
+  insert into public.message_comments (message_id, author_id, body, parent_id) values (p_message_id, current_user_id, trim(p_body), p_parent_id) returning id into new_id; return new_id;
+end; $$;
+
+create or replace function public.add_debate_comment(p_debate_id uuid, p_body text, p_parent_id uuid default null)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare new_id uuid; current_user_id uuid := auth.uid(); parent_debate_id uuid;
+begin
+  if current_user_id is null then raise exception '로그인이 필요합니다.'; end if;
+  if char_length(trim(p_body)) not between 1 and 1000 then raise exception '댓글은 1~1,000자로 작성해 주세요.'; end if;
+  if p_parent_id is not null then select debate_id into parent_debate_id from public.debate_comments where id = p_parent_id; if parent_debate_id is distinct from p_debate_id then raise exception '잘못된 답글 대상입니다.'; end if; end if;
+  insert into public.debate_comments (debate_id, author_id, body, parent_id) values (p_debate_id, current_user_id, trim(p_body), p_parent_id) returning id into new_id; return new_id;
+end; $$;
+
+create or replace function public.toggle_message_comment_like(p_comment_id uuid)
+returns integer language plpgsql security definer set search_path = public as $$
+declare current_user_id uuid := auth.uid(); count_after integer;
+begin
+  if current_user_id is null then raise exception '로그인이 필요합니다.'; end if;
+  if exists (select 1 from public.message_comment_likes where comment_id = p_comment_id and user_id = current_user_id) then delete from public.message_comment_likes where comment_id = p_comment_id and user_id = current_user_id; update public.message_comments set like_count = greatest(0, like_count - 1) where id = p_comment_id returning like_count into count_after;
+  else insert into public.message_comment_likes (comment_id, user_id) values (p_comment_id, current_user_id); update public.message_comments set like_count = like_count + 1 where id = p_comment_id returning like_count into count_after; end if;
+  if count_after is null then raise exception '댓글을 찾을 수 없습니다.'; end if; return count_after;
+end; $$;
+
+create or replace function public.toggle_debate_comment_like(p_comment_id uuid)
+returns integer language plpgsql security definer set search_path = public as $$
+declare current_user_id uuid := auth.uid(); count_after integer;
+begin
+  if current_user_id is null then raise exception '로그인이 필요합니다.'; end if;
+  if exists (select 1 from public.debate_comment_likes where comment_id = p_comment_id and user_id = current_user_id) then delete from public.debate_comment_likes where comment_id = p_comment_id and user_id = current_user_id; update public.debate_comments set like_count = greatest(0, like_count - 1) where id = p_comment_id returning like_count into count_after;
+  else insert into public.debate_comment_likes (comment_id, user_id) values (p_comment_id, current_user_id); update public.debate_comments set like_count = like_count + 1 where id = p_comment_id returning like_count into count_after; end if;
+  if count_after is null then raise exception '댓글을 찾을 수 없습니다.'; end if; return count_after;
+end; $$;
+
+grant execute on function public.add_message_comment(uuid, text, uuid) to authenticated;
+grant execute on function public.add_debate_comment(uuid, text, uuid) to authenticated;
+grant execute on function public.toggle_message_comment_like(uuid) to authenticated;
+grant execute on function public.toggle_debate_comment_like(uuid) to authenticated;
+
