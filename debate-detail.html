@@ -105,7 +105,10 @@
       }
       async function loadDebate() {
         const full = await supabase.from('debates').select('creator_id,opponent_id,status,title,category,ends_at,created_at,view_count,debate_messages(id,author_id,body,created_at,side,like_count,profiles(nickname))').eq('id', debateId).single();
-        return full.error ? supabase.from('debates').select('creator_id,opponent_id,status,title,category,ends_at,created_at,view_count,debate_messages(id,author_id,body,created_at,side,profiles(nickname))').eq('id', debateId).single() : full;
+        if (!full.error) return full;
+        const withoutReactions = await supabase.from('debates').select('creator_id,opponent_id,status,title,category,ends_at,created_at,view_count,debate_messages(id,author_id,body,created_at,side,profiles(nickname))').eq('id', debateId).single();
+        if (!withoutReactions.error) return withoutReactions;
+        return supabase.from('debates').select('creator_id,opponent_id,status,title,category,ends_at,created_at,debate_messages(id,author_id,body,created_at,side)').eq('id', debateId).single();
       }
 
       if (debateId) {
