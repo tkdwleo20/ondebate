@@ -102,9 +102,13 @@
         const full = await supabase.from('debate_comments').select('id,debate_id,parent_id,body,like_count,created_at,profiles(nickname)').eq('debate_id', debateId).order('created_at');
         return full.error ? supabase.from('debate_comments').select('id,debate_id,body,created_at,profiles(nickname)').eq('debate_id', debateId).order('created_at') : full;
       }
+      async function loadDebate() {
+        const full = await supabase.from('debates').select('creator_id,opponent_id,status,title,category,ends_at,created_at,view_count,debate_messages(id,author_id,body,created_at,side,like_count)').eq('id', debateId).single();
+        return full.error ? supabase.from('debates').select('creator_id,opponent_id,status,title,category,ends_at,created_at,view_count,debate_messages(id,author_id,body,created_at,side)').eq('id', debateId).single() : full;
+      }
 
       if (debateId) {
-        const [{ data: debate }, { data: { user } }] = await Promise.all([supabase.from('debates').select('creator_id,opponent_id,status,title,category,ends_at,created_at,view_count,debate_messages(id,author_id,body,created_at,side,like_count)').eq('id', debateId).single(), supabase.auth.getUser()]);
+        const [{ data: debate }, { data: { user } }] = await Promise.all([loadDebate(), supabase.auth.getUser()]);
         currentUser = user;
         if (debate) {
           document.getElementById('topic-title').textContent = debate.title; document.getElementById('topic-category').textContent = debate.category; const remain = Math.max(0, new Date(debate.ends_at) - Date.now()); const ended = remain === 0 || debate.status === 'ended'; const state = document.getElementById('debate-state'); state.textContent = ended ? '종료된 토론' : '● 진행 중'; state.className = ended ? 'ended-state' : 'live'; document.getElementById('remaining-time').textContent = ended ? '토론이 종료되었습니다' : `마감까지 ${Math.floor(remain / 3600000)}시간 ${Math.floor(remain % 3600000 / 60000)}분`; document.getElementById('created-time').textContent = `작성 ${new Date(debate.created_at).toLocaleString('ko-KR', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' })}`;
