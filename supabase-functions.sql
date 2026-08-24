@@ -1,3 +1,4 @@
+
 -- Run this after supabase-schema.sql in Supabase Dashboard > SQL Editor.
 -- It creates a single safe operation for starting a debate and its first message.
 create or replace function public.create_debate(
@@ -234,6 +235,30 @@ end; $$;
 
 grant execute on function public.toggle_message_like(uuid) to authenticated;
 grant execute on function public.cast_debate_vote(uuid, text) to authenticated;
+
+-- Soft-delete spectator comments while preserving nested reply structure.
+create or replace function public.delete_message_comment(p_comment_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception '로그인이 필요합니다.'; end if;
+  update public.message_comments
+  set body = '삭제된 댓글입니다.'
+  where id = p_comment_id and author_id = auth.uid();
+  if not found then raise exception '삭제할 수 없는 댓글입니다.'; end if;
+end; $$;
+
+create or replace function public.delete_debate_comment(p_comment_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception '로그인이 필요합니다.'; end if;
+  update public.debate_comments
+  set body = '삭제된 댓글입니다.'
+  where id = p_comment_id and author_id = auth.uid();
+  if not found then raise exception '삭제할 수 없는 댓글입니다.'; end if;
+end; $$;
+
+grant execute on function public.delete_message_comment(uuid) to authenticated;
+grant execute on function public.delete_debate_comment(uuid) to authenticated;
 
 -- Ensure the home page can read every debate except ones hidden by moderation.
 drop policy if exists "Visible debates are readable" on public.debates;
