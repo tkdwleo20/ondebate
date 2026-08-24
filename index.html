@@ -55,7 +55,7 @@
       const list = document.getElementById('popular-list');
       const listTitle = document.getElementById('list-title');
       const categoryList = document.getElementById('category-list');
-      const categories = ['일상', '사회, 정치', '연애', '문화, 취미', '게임, 스포츠', '직장'];
+      const categories = ['일상', '사회 · 정치', '연애', '문화 · 취미', '게임 · 스포츠', '학교 · 직장'];
       let selectedCategory = null;
       const { data: debates, error: debatesError } = await supabase.from('debates').select('id,title,category,status,ends_at,created_at').neq('status', 'hidden').order('created_at', { ascending: false }).limit(100);
 
