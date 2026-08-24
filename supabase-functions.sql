@@ -1,3 +1,4 @@
+
 -- Run this after supabase-schema.sql in Supabase Dashboard > SQL Editor.
 -- It creates a single safe operation for starting a debate and its first message.
 create or replace function public.create_debate(
@@ -195,4 +196,43 @@ grant execute on function public.add_message_comment(uuid, text, uuid) to authen
 grant execute on function public.add_debate_comment(uuid, text, uuid) to authenticated;
 grant execute on function public.toggle_message_comment_like(uuid) to authenticated;
 grant execute on function public.toggle_debate_comment_like(uuid) to authenticated;
+
+-- Hearts on debate messages and one vote per spectator.
+alter table public.debate_messages add column if not exists like_count integer not null default 0 check (like_count >= 0);
+create table if not exists public.message_likes (
+  message_id uuid not null references public.debate_messages(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (message_id, user_id)
+);
+alter table public.message_likes enable row level security;
+drop policy if exists "Users read own message likes" on public.message_likes;
+create policy "Users read own message likes" on public.message_likes for select to authenticated using ((select auth.uid()) = user_id);
+
+create or replace function public.toggle_message_like(p_message_id uuid)
+returns integer language plpgsql security definer set search_path = public as $$
+declare current_user_id uuid := auth.uid(); count_after integer;
+begin
+  if current_user_id is null then raise exception '로그인이 필요합니다.'; end if;
+  if exists (select 1 from public.message_likes where message_id = p_message_id and user_id = current_user_id) then delete from public.message_likes where message_id = p_message_id and user_id = current_user_id; update public.debate_messages set like_count = greatest(0, like_count - 1) where id = p_message_id returning like_count into count_after;
+  else insert into public.message_likes (message_id, user_id) values (p_message_id, current_user_id); update public.debate_messages set like_count = like_count + 1 where id = p_message_id returning like_count into count_after; end if;
+  if count_after is null then raise exception '발언을 찾을 수 없습니다.'; end if; return count_after;
+end; $$;
+
+create or replace function public.cast_debate_vote(p_debate_id uuid, p_chosen_side text)
+returns text language plpgsql security definer set search_path = public as $$
+declare current_user_id uuid := auth.uid(); target_debate public.debates%rowtype;
+begin
+  if current_user_id is null then raise exception '로그인이 필요합니다.'; end if;
+  if p_chosen_side not in ('left', 'right') then raise exception '잘못된 투표 선택입니다.'; end if;
+  select * into target_debate from public.debates where id = p_debate_id;
+  if not found then raise exception '토론을 찾을 수 없습니다.'; end if;
+  if target_debate.ends_at <= now() or target_debate.status in ('ended', 'hidden') then raise exception '종료된 토론에는 투표할 수 없습니다.'; end if;
+  if current_user_id = target_debate.creator_id or current_user_id = target_debate.opponent_id then raise exception '토론 참가자는 투표할 수 없습니다.'; end if;
+  if exists (select 1 from public.votes where debate_id = p_debate_id and voter_id = current_user_id) then raise exception '이미 투표하셨습니다.'; end if;
+  insert into public.votes (debate_id, voter_id, chosen_side) values (p_debate_id, current_user_id, p_chosen_side); return p_chosen_side;
+end; $$;
+
+grant execute on function public.toggle_message_like(uuid) to authenticated;
+grant execute on function public.cast_debate_vote(uuid, text) to authenticated;
 
