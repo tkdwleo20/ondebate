@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ko">
   <head>
@@ -16,11 +17,11 @@
       input[type="text"], select, textarea { display:block; width:100%; border:1px solid #d7d7d7; border-radius:2px; color:#222; padding:10px 11px; outline:none; font-size:14px; } input[type="text"] { height:42px; } textarea { min-height:180px; resize:vertical; line-height:1.7; } input:focus, select:focus, textarea:focus { border-color:#555; } select { height:42px; background:#fff; }
       .time-row { display:flex; align-items:center; gap:11px; } .time-row input { width:96px; height:42px; border:1px solid #d7d7d7; padding:0 10px; } .time-row span { font-size:13px; } .time-preview { margin-top:9px; color:#777; font-size:12px; } .agreement { background:#fafafa; border-top:1px solid var(--line); padding:15px 22px; color:#666; font-size:12px; line-height:1.6; }
       .actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; } .cancel, .submit { height:42px; padding:0 17px; font-size:13px; cursor:pointer; } .cancel { border:1px solid #cfcfcf; background:#fff; color:#555; } .submit { border:1px solid #333; background:#333; color:#fff; font-weight:600; } .submit:disabled { background:#888; border-color:#888; cursor:wait; } .success { display:none; margin-top:15px; padding:13px 15px; background:#eef7ee; border:1px solid #cbe2cc; color:#39623c; font-size:13px; } .success.show { display:block; } .success.error { background:#fff2f0; border-color:#efb9b0; color:#b53e31; }
-      @media(max-width:650px) { header { padding:0 18px; gap:20px; } nav { gap:15px; } nav a:last-child { display:none; } main { margin-top:24px; } .field { padding:18px 15px; } .time-row { flex-wrap:wrap; } .time-preview { width:100%; margin-left:0; } }
+      .mobile-nav { display:none; } @media(max-width:650px) { header { height:58px; padding:0 14px; gap:0; } .brand { font-size:19px; } nav { margin-left:17px; gap:16px; } nav a { font-size:12px; text-align:center; line-height:1.15; } .desktop-nav { display:none; } .mobile-nav { display:inline; } #auth-area { margin-left:14px; min-width:0; } #auth-area .account-link { max-width:62px; overflow:hidden; text-overflow:ellipsis; font-size:12px; font-weight:800; } #auth-area .logout-button { display:none; } main { margin-top:24px; } .field { padding:18px 15px; } .time-row { flex-wrap:wrap; } .time-preview { width:100%; margin-left:0; } }
     </style>
   </head>
   <body>
-    <header><a class="brand" href="index.html">On<i>Debate</i></a><nav><a href="index.html">홈</a><a href="#">인기 토론</a><a href="#">카테고리</a></nav><span id="auth-area"></span></header>
+    <header><a class="brand" href="index.html">On<i>Debate</i></a><nav><a href="index.html#popular"><span class="desktop-nav">인기 토론</span><span class="mobile-nav">인기<br />토론</span></a><a href="index.html#categories">카테고리</a></nav><span id="auth-area"></span></header>
     <main>
       <form id="debate-form" class="form-card">
         <div class="field"><input id="title" type="text" maxlength="100" required placeholder="제목을 입력해주세요" aria-label="토론 주제" /></div>
