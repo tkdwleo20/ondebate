@@ -46,7 +46,7 @@
       const messageForm = document.getElementById('message-form'); const messageFormTitle = document.getElementById('message-form-title'); const messageFormDescription = document.getElementById('message-form-description'); const messageBody = document.getElementById('message-body'); const messageNotice = document.getElementById('message-notice'); const messageSubmit = document.getElementById('message-submit');
       const debateCommentsBox = document.getElementById('debate-comments'); const debateCommentForm = document.getElementById('debate-comment-form'); const debateCommentInput = document.getElementById('debate-comment-body'); const voteLeft = document.getElementById('vote-left'); const voteRight = document.getElementById('vote-right'); const voteNotice = document.getElementById('vote-notice');
       let mySide = null, currentUser = null, messageComments = [], debateComments = [], profileNames = new Map(), likedMessages = new Set(), likedMessageComments = new Set(), likedDebateComments = new Set();
-      const nickname = entry => profileNames.get(entry.author_id) || '토론자';
+      const nickname = entry => profileNames.get(entry.author_id) || '탈퇴한 사용자';
       const timeText = value => new Date(value).toLocaleString('ko-KR', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
       const thumbMarkup = count => `<svg class="reaction-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2z"></path></svg><span>${count}</span>`;
 
