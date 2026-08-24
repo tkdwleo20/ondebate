@@ -21,7 +21,7 @@
       .debate { background:#fff; border-bottom:1px solid var(--line); padding:17px 18px; transition:.15s; } .debate:last-child { border-bottom:0; } .debate:hover { background:#fafafa; } .debate-card { cursor:pointer; } .debate-card:focus-visible { outline:2px solid #555; outline-offset:-3px; }
       .meta { display:flex; align-items:center; gap:8px; font-size:11px; color:var(--muted); } .badge { border-radius:4px; padding:3px 6px; font-size:10px; font-weight:800; } .live { background:#fff0ec; color:#d9422e; } .waiting { background:#edf3ff; color:#3970c9; } .ended { background:#f0f0f0; color:#777; }
       .debate h3 { font-size:15px; letter-spacing:-.55px; margin:8px 0 9px; font-weight:600; } .debate-link { color:inherit; text-decoration:none; } .debate-link:hover { text-decoration:underline; } .debate-note { color:#888; font-size:12px; } .stats { margin-left:auto; color:var(--muted); font-size:11px; font-weight:500; }
-      .category-grid { display:grid; grid-template-columns:repeat(2,1fr); } .category { background:#fff; padding:15px 18px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); } .category:nth-child(2n) { border-right:0; } .category:nth-last-child(-n+2) { border-bottom:0; } .category b { display:block; font-size:14px; margin-bottom:5px; } .category span { font-size:11px; color:var(--muted); }
+      .category-grid { display:grid; grid-template-columns:repeat(2,1fr); } .category { appearance:none; width:100%; text-align:left; background:#fff; border:0; border-right:1px solid var(--line); border-bottom:1px solid var(--line); padding:15px 18px; cursor:pointer; font-family:inherit; transition:.15s; } .category:nth-child(2n) { border-right:0; } .category:nth-last-child(-n+2) { border-bottom:0; } .category:hover, .category.active { background:#f6f6f6; } .category.active b { color:var(--red); } .category b { display:block; font-size:14px; margin-bottom:5px; } .category span { font-size:11px; color:var(--muted); }
       aside { background:#fff; border:1px solid var(--line); height:max-content; } aside h2 { padding:16px; border-bottom:1px solid var(--line); } .rank { display:flex; align-items:center; gap:9px; padding:10px 14px; border-bottom:1px solid var(--line); } .rank strong { width:18px; font:500 12px "DM Mono"; color:var(--muted); } .avatar { width:28px; height:28px; border-radius:3px; display:grid; place-items:center; font-size:11px; font-weight:800; background:#f2e5ce; } .rank:nth-child(3) .avatar { background:#e8edf9; } .rank:nth-child(4) .avatar { background:#e5f0e7; } .user { min-width:0; } .user b { font-size:12px; display:block; } .user span { color:var(--muted); font-size:10px; } .points { margin-left:auto; color:#b97b00; font:11px "DM Mono"; }
       .guide { background:var(--yellow); border-top:1px solid var(--line); padding:15px; } .guide b { font-size:12px; display:block; margin-bottom:5px; } .guide p { font-size:11px; margin:0; line-height:1.6; color:#555; }
       .mobile-nav { display:none; } @media (max-width:760px) { header { height:58px; padding:0 14px; gap:0; } .brand { font-size:19px; letter-spacing:-1.1px; } nav { margin-left:17px; gap:16px; } nav a { font-size:12px; text-align:center; line-height:1.15; white-space:nowrap; } .desktop-nav { display:none; } .mobile-nav { display:inline; } .start { display:none; } #auth-area { display:flex; margin-left:auto; min-width:0; } #auth-area .account-link { max-width:62px; overflow:hidden; text-overflow:ellipsis; font-size:12px; font-weight:800; } #auth-area .logout-button { display:none; } .mobile-start { display:flex; position:fixed; right:18px; bottom:20px; z-index:4; align-items:center; gap:6px; background:#303030; color:#fff; text-decoration:none; border-radius:24px; padding:13px 17px; box-shadow:0 5px 16px rgba(0,0,0,.22); font-size:13px; font-weight:700; } main { padding:18px; } .layout { display:block; } aside { margin-top:20px; } .category-grid { grid-template-columns:1fr; } .category, .category:nth-child(2n) { border-right:0; } .category:nth-last-child(-n+2) { border-bottom:1px solid var(--line); } .category:last-child { border-bottom:0; } }
@@ -41,9 +41,9 @@
       </section>
       <div class="layout">
         <div>
-          <section class="section" id="popular"><h2>지금 뜨거운 토론</h2><div id="popular-list"></div>
+          <section class="section" id="popular"><h2 id="list-title">지금 뜨거운 토론</h2><div id="popular-list"></div>
           </section>
-          <section class="section" id="categories"><h2>카테고리별 새 토론</h2><div class="category-grid"><div class="category"><b>사회 · 정치</b><span>새 토론 12개</span></div><div class="category"><b>문화 · 엔터</b><span>새 토론 8개</span></div><div class="category"><b>연애 · 인간관계</b><span>새 토론 17개</span></div><div class="category"><b>게임 · 스포츠</b><span>새 토론 9개</span></div></div></section>
+          <section class="section" id="categories"><h2>카테고리별 새 토론</h2><div class="category-grid" id="category-list"></div></section>
         </div>
         <aside><h2>이번 주 랭킹</h2><div class="rank"><strong>01</strong><span class="avatar">민</span><div class="user"><b>민트초코</b><span>승률 72%</span></div><span class="points">42.8K</span></div><div class="rank"><strong>02</strong><span class="avatar">논</span><div class="user"><b>논리왕김토론</b><span>승률 68%</span></div><span class="points">39.1K</span></div><div class="rank"><strong>03</strong><span class="avatar">단</span><div class="user"><b>단호박</b><span>승률 65%</span></div><span class="points">35.7K</span></div><div class="guide"><b>키보드 배틀, 이렇게 해요</b><p>주장을 올리고 반박을 기다리세요. 토론은 최대 24시간 진행되며, 관전자는 승자를 투표합니다.</p></div></aside>
       </div>
@@ -53,10 +53,22 @@
       import { supabase, mountAuthState } from './supabase.js';
       mountAuthState('auth-area');
       const list = document.getElementById('popular-list');
-      const { data: debates, error: debatesError } = await supabase.from('debates').select('id,title,category,status,ends_at,created_at').neq('status', 'hidden').order('created_at', { ascending: false }).limit(20);
-      if (debates?.length) {
+      const listTitle = document.getElementById('list-title');
+      const categoryList = document.getElementById('category-list');
+      const categories = ['일상', '사회, 정치', '연애', '문화, 취미', '게임, 스포츠', '직장'];
+      let selectedCategory = null;
+      const { data: debates, error: debatesError } = await supabase.from('debates').select('id,title,category,status,ends_at,created_at').neq('status', 'hidden').order('created_at', { ascending: false }).limit(100);
+
+      const allDebates = debates ?? [];
+      function renderDebates() {
+        const visibleDebates = selectedCategory ? allDebates.filter(debate => debate.category === selectedCategory) : allDebates;
+        listTitle.textContent = selectedCategory ? `${selectedCategory} 토론` : '지금 뜨거운 토론';
         list.replaceChildren();
-        debates.forEach(debate => {
+        if (!visibleDebates.length) {
+          list.textContent = selectedCategory ? `${selectedCategory} 카테고리에 아직 등록된 토론이 없습니다.` : '아직 등록된 토론이 없습니다.';
+          return;
+        }
+        visibleDebates.forEach(debate => {
           const article = document.createElement('article'); article.className = 'debate debate-card'; article.tabIndex = 0; article.setAttribute('role', 'link');
           const meta = document.createElement('div'); meta.className = 'meta';
           const ended = new Date(debate.ends_at) <= new Date();
@@ -68,8 +80,24 @@
           const destination = `debate-detail.html?id=${debate.id}`; article.addEventListener('click', event => { if (!event.target.closest('a')) location.href = destination; }); article.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); location.href = destination; } });
           article.append(meta, heading, note); list.append(article);
         });
+      }
+
+      if (debatesError) {
+        list.textContent = '토론 목록을 불러오지 못했습니다.';
       } else {
-        list.textContent = debatesError ? '토론 목록을 불러오지 못했습니다.' : '아직 등록된 토론이 없습니다.';
+        categories.forEach(category => {
+          const button = document.createElement('button'); button.type = 'button'; button.className = 'category';
+          const count = allDebates.filter(debate => debate.category === category).length;
+          button.innerHTML = `<b>${category}</b><span>새 토론 ${count}개</span>`;
+          button.addEventListener('click', () => {
+            selectedCategory = selectedCategory === category ? null : category;
+            categoryList.querySelectorAll('.category').forEach(item => item.classList.toggle('active', item === button && selectedCategory === category));
+            renderDebates();
+            document.getElementById('popular').scrollIntoView({ behavior:'smooth', block:'start' });
+          });
+          categoryList.append(button);
+        });
+        renderDebates();
       }
     </script>
   </body>
