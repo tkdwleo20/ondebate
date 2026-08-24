@@ -55,7 +55,7 @@
       const list = document.getElementById('popular-list');
       const categoryList = document.getElementById('category-list');
       const categories = ['일상', '사회 · 정치', '연애', '문화 · 취미', '게임 · 스포츠', '학교 · 직장'];
-      const { data: debates, error: debatesError } = await supabase.from('debates').select('id,title,category,status,ends_at,created_at').neq('status', 'hidden').order('created_at', { ascending: false }).limit(100);
+      const { data: debates, error: debatesError } = await supabase.from('debates').select('id,title,category,status,ends_at,created_at,debate_messages(body,created_at)').neq('status', 'hidden').order('created_at', { ascending: false }).limit(100);
 
       const allDebates = debates ?? [];
       function renderDebates() {
@@ -72,7 +72,8 @@
           const remain = Math.max(0, new Date(debate.ends_at) - Date.now()); const hours = Math.floor(remain / 3600000); const minutes = Math.floor(remain % 3600000 / 60000);
           meta.append(badge, document.createTextNode(` ${debate.category} · ${ended ? '토론 종료' : `${hours}시간 ${minutes}분 남음`}`));
           const heading = document.createElement('h3'); const link = document.createElement('a'); link.className = 'debate-link'; link.href = `debate-detail.html?id=${debate.id}`; link.textContent = debate.title; heading.append(link);
-          const note = document.createElement('div'); note.className = 'debate-note'; note.textContent = ended ? '종료된 토론입니다. 결과와 관전자 의견을 확인해 보세요.' : (debate.status === 'waiting' ? '첫 번째 반박을 남기면 토론이 시작됩니다.' : '진행 중인 토론입니다.');
+          const openingMessage = [...(debate.debate_messages ?? [])].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))[0]?.body ?? '첫 발언을 불러올 수 없습니다.';
+          const note = document.createElement('div'); note.className = 'debate-note'; note.textContent = openingMessage.length > 150 ? `${openingMessage.slice(0, 150)}…` : openingMessage;
           const destination = `debate-detail.html?id=${debate.id}`; article.addEventListener('click', event => { if (!event.target.closest('a')) location.href = destination; }); article.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); location.href = destination; } });
           article.append(meta, heading, note); list.append(article);
         });
