@@ -98,3 +98,31 @@ $$;
 
 grant execute on function public.post_debate_message(uuid, text) to authenticated;
 
+-- Run this section once to add a view counter. It also marks an expired debate
+-- as ended the first time its detail page is opened after its deadline.
+alter table public.debates add column if not exists view_count integer not null default 0;
+
+create or replace function public.record_debate_view(p_debate_id uuid)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  new_view_count integer;
+begin
+  update public.debates
+  set view_count = view_count + 1,
+      status = case when ends_at <= now() and status <> 'hidden' then 'ended' else status end
+  where id = p_debate_id and status <> 'hidden'
+  returning view_count into new_view_count;
+
+  if new_view_count is null then
+    raise exception '토론을 찾을 수 없습니다.';
+  end if;
+  return new_view_count;
+end;
+$$;
+
+grant execute on function public.record_debate_view(uuid) to anon, authenticated;
+
