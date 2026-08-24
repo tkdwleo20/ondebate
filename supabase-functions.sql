@@ -103,7 +103,16 @@ grant execute on function public.post_debate_message(uuid, text) to authenticate
 -- as ended the first time its detail page is opened after its deadline.
 alter table public.debates add column if not exists view_count integer not null default 0;
 
-create or replace function public.record_debate_view(p_debate_id uuid)
+create table if not exists public.debate_view_events (
+  debate_id uuid not null references public.debates(id) on delete cascade,
+  viewer_key text not null check (char_length(viewer_key) between 10 and 120),
+  viewed_at timestamptz not null default now(),
+  primary key (debate_id, viewer_key)
+);
+alter table public.debate_view_events enable row level security;
+
+drop function if exists public.record_debate_view(uuid);
+create or replace function public.record_debate_view(p_debate_id uuid, p_viewer_key text)
 returns integer
 language plpgsql
 security definer
@@ -111,9 +120,19 @@ set search_path = public
 as $$
 declare
   new_view_count integer;
+  last_viewed_at timestamptz;
+  resolved_viewer_key text := case when auth.uid() is not null then 'user:' || auth.uid()::text else 'guest:' || coalesce(p_viewer_key, '') end;
 begin
+  if char_length(resolved_viewer_key) not between 10 and 120 then
+    raise exception '유효하지 않은 조회자입니다.';
+  end if;
+  select viewed_at into last_viewed_at from public.debate_view_events where debate_id = p_debate_id and viewer_key = resolved_viewer_key;
+  if last_viewed_at is null or last_viewed_at < now() - interval '30 minutes' then
+    insert into public.debate_view_events (debate_id, viewer_key, viewed_at) values (p_debate_id, resolved_viewer_key, now())
+    on conflict (debate_id, viewer_key) do update set viewed_at = excluded.viewed_at;
+  end if;
   update public.debates
-  set view_count = view_count + 1,
+  set view_count = view_count + case when last_viewed_at is null or last_viewed_at < now() - interval '30 minutes' then 1 else 0 end,
       status = case when ends_at <= now() and status <> 'hidden' then 'ended' else status end
   where id = p_debate_id and status <> 'hidden'
   returning view_count into new_view_count;
@@ -125,7 +144,7 @@ begin
 end;
 $$;
 
-grant execute on function public.record_debate_view(uuid) to anon, authenticated;
+grant execute on function public.record_debate_view(uuid, text) to anon, authenticated;
 
 -- Spectator comments, nested replies, and hearts for messages and whole debates.
 alter table public.message_comments add column if not exists parent_id uuid references public.message_comments(id) on delete cascade;
