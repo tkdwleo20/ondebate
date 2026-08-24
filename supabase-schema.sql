@@ -80,6 +80,7 @@ create table public.reports (
 create index debates_status_end_idx on public.debates(status, ends_at);
 create index debate_messages_debate_created_idx on public.debate_messages(debate_id, created_at);
 create index votes_debate_idx on public.votes(debate_id);
+create unique index profiles_nickname_case_insensitive_idx on public.profiles (lower(nickname));
 
 alter table public.profiles enable row level security;
 alter table public.debates enable row level security;
