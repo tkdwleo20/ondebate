@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>카카오 로그인 확인 중 — OnDebate</title>
+    <style>body{margin:0;background:#f6f6f6;color:#222;font:14px system-ui,sans-serif;display:grid;place-items:center;min-height:100vh}.card{width:min(360px,calc(100% - 40px));padding:28px;background:#fff;border:1px solid #e3e3e3;text-align:center}.error{color:#b53e31;line-height:1.6}</style>
+  </head>
+  <body><main class="card"><p id="message">카카오 로그인 정보를 확인하고 있습니다…</p></main>
+    <script type="module">
+      import { supabase } from './supabase.js';
+      const message = document.getElementById('message'); const params = new URLSearchParams(location.search); const code = params.get('code'); const state = params.get('state');
+      function fail(text) { message.textContent = text; message.className = 'error'; }
+      if (params.get('error')) fail('카카오 로그인이 취소되었거나 진행할 수 없습니다. 로그인 화면에서 다시 시도해 주세요.');
+      else if (!code || state !== sessionStorage.getItem('kakao-oauth-state')) fail('로그인 요청을 확인할 수 없습니다. 로그인 화면에서 다시 시도해 주세요.');
+      else {
+        const redirectUri = new URL('kakao-callback.html', location.href).href;
+        const { data, error } = await supabase.functions.invoke('kakao-token', { body: { action:'exchange', code, redirectUri } });
+        if (error || !data?.idToken) fail('카카오 인증 정보를 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+        else {
+          const { error: signInError } = await supabase.auth.signInWithIdToken({ provider:'kakao', token:data.idToken });
+          if (signInError) fail('OnDebate 로그인 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+          else { const next = sessionStorage.getItem('kakao-next') || 'index.html'; sessionStorage.removeItem('kakao-oauth-state'); sessionStorage.removeItem('kakao-next'); location.href = next; }
+        }
+      }
+    </script>
+  </body>
+</html>
+
