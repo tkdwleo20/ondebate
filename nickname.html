@@ -13,13 +13,16 @@
   </head>
   <body>
     <header><a class="brand" href="index.html">On<i>Debate</i></a></header>
-    <main><section class="card"><h1>닉네임을 정해주세요</h1><p>토론과 댓글에서 사용할 이름입니다. 나중에 변경할 수 있습니다.</p><form id="nickname-form"><label for="nickname">닉네임</label><div class="nickname-row"><input id="nickname" minlength="2" maxlength="20" required placeholder="2~20자로 입력" autofocus /><button class="check-button" id="check-nickname" type="button">중복 확인</button></div><button class="submit-button" type="submit">시작하기</button><div class="message" id="message"></div></form></section></main>
+    <main><section class="card"><h1 id="page-title">닉네임을 정해주세요</h1><p id="page-description">토론과 댓글에서 사용할 이름입니다.</p><form id="nickname-form"><label for="nickname">닉네임</label><div class="nickname-row"><input id="nickname" minlength="2" maxlength="20" required placeholder="2~20자로 입력" autofocus /><button class="check-button" id="check-nickname" type="button">중복 확인</button></div><button class="submit-button" id="submit-button" type="submit">시작하기</button><div class="message" id="message"></div></form></section></main>
     <script type="module">
-      import { supabase, getProfile, saveNickname } from './supabase.js';
+      import { supabase, getProfile, saveNickname, changeNickname } from './supabase.js';
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) location.href = 'login.html';
       const profile = await getProfile();
-      if (profile && !/^토론자[0-9a-f]{6}$/i.test(profile.nickname)) document.getElementById('nickname').value = profile.nickname;
+      const params = new URLSearchParams(location.search); const isChange = params.get('mode') === 'change';
+      if (isChange && !profile) location.href = 'nickname.html';
+      if (isChange) { document.title = '닉네임 변경 — OnDebate'; document.getElementById('page-title').textContent = '닉네임 변경'; document.getElementById('page-description').textContent = '최초 1회는 언제든 변경할 수 있고, 이후에는 마지막 변경일로부터 3개월 후에 변경할 수 있습니다.'; document.getElementById('submit-button').textContent = '닉네임 변경하기'; }
+      if (profile && (!/^토론자[0-9a-f]{6}$/i.test(profile.nickname) || isChange)) document.getElementById('nickname').value = profile.nickname;
       const input = document.getElementById('nickname'); const message = document.getElementById('message'); let checkedNickname = null;
       input.addEventListener('input', () => { checkedNickname = null; message.classList.remove('show', 'success'); });
       document.getElementById('check-nickname').addEventListener('click', async () => {
@@ -35,7 +38,7 @@
       document.getElementById('nickname-form').addEventListener('submit', async event => {
         event.preventDefault(); const nickname = input.value.trim();
         if (checkedNickname !== nickname.toLocaleLowerCase('ko-KR')) { message.textContent = '닉네임 중복 확인을 먼저 해주세요.'; message.classList.remove('success'); message.classList.add('show'); return; }
-        try { await saveNickname(nickname); location.href = new URLSearchParams(location.search).get('next') || 'index.html'; }
+        try { if (isChange) await changeNickname(nickname); else await saveNickname(nickname); location.href = params.get('next') || 'index.html'; }
         catch (error) { message.textContent = error.code === '23505' ? '이미 사용 중인 닉네임입니다.' : error.message; message.classList.remove('success'); message.classList.add('show'); }
       });
     </script>
