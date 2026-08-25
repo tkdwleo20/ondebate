@@ -89,8 +89,10 @@ export async function mountAuthState(targetId) {
     return;
   }
   // The database enforces one reward per Korea-standard calendar day.
-  await supabase.rpc('daily_checkin').catch(() => null);
-  await supabase.rpc('settle_expired_debates').catch(() => null);
+  // Point features may not be installed yet. They must never prevent an
+  // otherwise valid login session or the rest of a page from rendering.
+  try { await supabase.rpc('daily_checkin'); } catch (_) { /* optional feature */ }
+  try { await supabase.rpc('settle_expired_debates'); } catch (_) { /* optional feature */ }
   const nickname = profile.nickname;
   ensureNotificationStyle();
   target.replaceChildren();
