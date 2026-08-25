@@ -88,6 +88,9 @@ export async function mountAuthState(targetId) {
     location.href = `nickname.html?next=${encodeURIComponent(location.pathname.split('/').pop() || 'index.html')}`;
     return;
   }
+  // The database enforces one reward per Korea-standard calendar day.
+  await supabase.rpc('daily_checkin').catch(() => null);
+  await supabase.rpc('settle_expired_debates').catch(() => null);
   const nickname = profile.nickname;
   ensureNotificationStyle();
   target.replaceChildren();
