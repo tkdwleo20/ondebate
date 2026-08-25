@@ -88,7 +88,7 @@ begin
   if d.opponent_id is null then perform public.award_points(d.creator_id,150,'no_opponent_refund',p_debate_id,'refund:'||p_debate_id::text); return; end if;
   select count(*) filter(where chosen_side='left'),count(*) filter(where chosen_side='right'),count(*) into left_votes,right_votes,total_votes from public.votes where debate_id=p_debate_id;
   if left_votes>right_votes then perform public.award_points(d.creator_id,300,'debate_win',p_debate_id,'win:'||p_debate_id::text); elsif right_votes>left_votes then perform public.award_points(d.opponent_id,300,'debate_win',p_debate_id,'win:'||p_debate_id::text); end if;
-  for voter in select voter_id from public.votes where debate_id=p_debate_id loop perform public.award_points(voter.voter_id,10,'vote_participation',p_debate_id,'vote:'||p_debate_id::text||':'||voter.voter_id::text); end loop;
+  -- Vote points are granted at the moment of voting, not during settlement.
   select count(*) filter(where author_id=d.creator_id),count(*) filter(where author_id=d.opponent_id) into creator_messages,opponent_messages from public.debate_messages where debate_id=p_debate_id;
   if total_votes>=10 and creator_messages>=2 and opponent_messages>=2 then perform public.award_points(d.creator_id,50,'audience_bonus',p_debate_id,'audience:'||p_debate_id::text||':creator'); perform public.award_points(d.opponent_id,50,'audience_bonus',p_debate_id,'audience:'||p_debate_id::text||':opponent'); end if;
 end; $$;
