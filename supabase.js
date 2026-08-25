@@ -19,7 +19,17 @@ export async function saveNickname(nickname) {
   if (!user) throw new Error('로그인이 필요합니다.');
   const cleanNickname = nickname.trim();
   if (cleanNickname.length < 2 || cleanNickname.length > 20) throw new Error('닉네임은 2~20자로 입력해 주세요.');
-  const { error } = await supabase.from('profiles').upsert({ id: user.id, nickname: cleanNickname });
+  const { error } = await supabase.rpc('set_nickname', { p_nickname: cleanNickname, p_is_change: false });
+  if (error) throw error;
+  return cleanNickname;
+}
+
+export async function changeNickname(nickname) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('로그인이 필요합니다.');
+  const cleanNickname = nickname.trim();
+  if (cleanNickname.length < 2 || cleanNickname.length > 20) throw new Error('닉네임은 2~20자로 입력해 주세요.');
+  const { error } = await supabase.rpc('set_nickname', { p_nickname: cleanNickname, p_is_change: true });
   if (error) throw error;
   return cleanNickname;
 }
