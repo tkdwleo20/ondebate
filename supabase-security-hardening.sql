@@ -134,6 +134,14 @@ drop policy if exists "Signed-in users add message comments" on public.message_c
 drop policy if exists "Signed-in users add debate comments" on public.debate_comments;
 drop policy if exists "A non-participant votes once" on public.votes;
 
+-- These helper tables are deliberately accessed only through privileged RPCs.
+drop policy if exists "No direct admin user access" on public.admin_users;
+drop policy if exists "No direct debate view event access" on public.debate_view_events;
+drop policy if exists "No direct vote access" on public.votes;
+create policy "No direct admin user access" on public.admin_users as restrictive for all using (false) with check (false);
+create policy "No direct debate view event access" on public.debate_view_events as restrictive for all using (false) with check (false);
+create policy "No direct vote access" on public.votes as restrictive for all using (false) with check (false);
+
 -- The comment RPCs may only target a visible debate.
 create or replace function public.add_message_comment(p_message_id uuid, p_body text, p_parent_id uuid default null)
 returns uuid language plpgsql security definer set search_path = public as $$
@@ -208,6 +216,9 @@ revoke all on function public.admin_members() from public, anon;
 revoke all on function public.admin_member_activity(uuid) from public, anon;
 revoke all on function public.admin_dismiss_report(uuid) from public, anon;
 revoke all on function public.is_admin() from public, anon;
+revoke all on function public.notify_opponent_message() from public, anon, authenticated;
+revoke all on function public.notify_message_comment() from public, anon, authenticated;
+revoke all on function public.notify_debate_comment() from public, anon, authenticated;
 
 grant execute on function public.get_public_profiles(uuid[]) to anon, authenticated;
 grant execute on function public.is_nickname_available(text) to authenticated;
