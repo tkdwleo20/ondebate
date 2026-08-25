@@ -5,6 +5,8 @@ create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   nickname text not null unique check (char_length(nickname) between 2 and 20),
   points integer not null default 0 check (points >= 0),
+  nickname_change_count integer not null default 0 check (nickname_change_count >= 0),
+  nickname_changed_at timestamptz,
   is_admin boolean not null default false,
   created_at timestamptz not null default now()
 );
@@ -93,7 +95,6 @@ alter table public.reports enable row level security;
 
 create policy "Public profiles are readable" on public.profiles for select using (true);
 create policy "Users create their own profile" on public.profiles for insert to authenticated with check ((select auth.uid()) = id);
-create policy "Users update their own profile" on public.profiles for update to authenticated using ((select auth.uid()) = id) with check ((select auth.uid()) = id);
 
 create policy "Visible debates are readable" on public.debates for select using (status <> 'hidden');
 create policy "Users create their own debate" on public.debates for insert to authenticated with check ((select auth.uid()) = creator_id and ends_at = started_at + make_interval(hours => duration_hours));
