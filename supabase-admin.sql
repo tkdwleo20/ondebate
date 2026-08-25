@@ -48,6 +48,21 @@ begin
 end; $$;
 grant execute on function public.admin_hide_debate(uuid, uuid) to authenticated;
 
+create or replace function public.admin_set_debate_visibility(p_debate_id uuid, p_hidden boolean)
+returns void language plpgsql security definer set search_path = public as $$
+declare v_current_status text;
+begin
+  if not public.is_admin() then raise exception '관리자 권한이 필요합니다.'; end if;
+  select status into v_current_status from public.debates where id = p_debate_id for update;
+  if not found then raise exception '토론을 찾을 수 없습니다.'; end if;
+  if p_hidden then
+    update public.debates set status = 'hidden' where id = p_debate_id;
+  elsif v_current_status = 'hidden' then
+    update public.debates set status = case when ends_at <= now() then 'ended' when opponent_id is null then 'waiting' else 'active' end where id = p_debate_id;
+  end if;
+end; $$;
+grant execute on function public.admin_set_debate_visibility(uuid, boolean) to authenticated;
+
 create or replace function public.admin_delete_debate(p_debate_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
 begin
