@@ -31,7 +31,7 @@
     <header>
       <a class="brand" href="#">On<i>Debate</i></a>
       <nav><a href="#popular"><span class="desktop-nav">인기 토론</span><span class="mobile-nav">인기 토론</span></a><a href="#categories">카테고리</a></nav>
-      <a class="start" href="create-debate.html">토론 시작하기</a><span id="auth-area"><a class="account-link" href="login.html">로그인</a></span>
+      <a class="start" href="login.html?next=create-debate.html">토론 시작하기</a><span id="auth-area"><a class="account-link" href="login.html">로그인</a></span>
     </header>
     <main>
       <section class="search-area">
@@ -48,7 +48,7 @@
         <aside><h2>승률 랭킹</h2><p class="rank-info">최근 1주일 내 종료된 토론의 관전자 투표 결과 기준</p><div id="rank-list"><p class="empty-rank">랭킹을 불러오는 중입니다.</p></div></aside>
       </div>
     </main>
-    <a class="mobile-start" href="create-debate.html">＋ 토론 시작하기</a>
+    <a class="mobile-start" href="login.html?next=create-debate.html">＋ 토론 시작하기</a>
     <script type="module">
       import { supabase, mountAuthState } from './supabase.js';
       mountAuthState('auth-area');
