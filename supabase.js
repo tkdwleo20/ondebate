@@ -6,6 +6,16 @@ export const supabase = createClient(
   'sb_publishable_cJv4iU4Aod6RVY8se0TiZg_oXS0Ukdk'
 );
 
+// The header initially has a login route so signed-out visitors are protected.
+// Intercept it for signed-in visitors to avoid a visible login-page flash.
+document.addEventListener('click', async event => {
+  const startLink = event.target.closest('a[href="login.html?next=create-debate.html"]');
+  if (!startLink || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  const { data: { user } } = await supabase.auth.getUser();
+  location.href = user ? 'create-debate.html' : 'login.html?next=create-debate.html';
+});
+
 export async function getProfile() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
