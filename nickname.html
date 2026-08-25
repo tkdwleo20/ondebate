@@ -29,10 +29,10 @@
         const nickname = input.value.trim(); message.classList.remove('success');
         if (nickname.length < 2 || nickname.length > 20) { message.textContent = '닉네임은 2~20자로 입력해 주세요.'; message.classList.add('show'); return; }
         const button = document.getElementById('check-nickname'); button.disabled = true; button.textContent = '확인 중…';
-        const { data, error } = await supabase.from('profiles').select('id').ilike('nickname', nickname).neq('id', user.id).maybeSingle();
+        const { data, error } = await supabase.rpc('is_nickname_available', { p_nickname:nickname });
         button.disabled = false; button.textContent = '중복 확인';
         if (error) { message.textContent = '중복 확인을 하지 못했습니다. 다시 시도해 주세요.'; message.classList.add('show'); return; }
-        if (data) { checkedNickname = null; message.textContent = '이미 사용 중인 닉네임입니다.'; message.classList.add('show'); return; }
+        if (!data) { checkedNickname = null; message.textContent = '이미 사용 중인 닉네임입니다.'; message.classList.add('show'); return; }
         checkedNickname = nickname.toLocaleLowerCase('ko-KR'); message.textContent = '사용 가능한 닉네임입니다.'; message.classList.add('show', 'success');
       });
       document.getElementById('nickname-form').addEventListener('submit', async event => {
