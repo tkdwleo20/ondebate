@@ -16,6 +16,9 @@ document.addEventListener('click', async event => {
   location.href = user ? 'create-debate.html' : 'login.html?next=create-debate.html';
 });
 
+// Keep the shared header navigation consistent across every existing page.
+document.querySelectorAll('a[href="index.html#popular"], a[href="#popular"]').forEach(link => { link.href = 'popular.html'; });
+
 export async function getProfile() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
