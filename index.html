@@ -93,30 +93,16 @@
       }
 
       async function renderRankings() {
-        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-        const { data: finishedDebates, error } = await supabase.from('debates').select('creator_id,opponent_id,votes(chosen_side)').eq('status', 'ended').gte('ends_at', weekAgo).not('opponent_id', 'is', null);
+        const { data: ranked, error } = await supabase.rpc('weekly_win_rankings');
         if (error) { rankList.textContent = '랭킹을 불러오지 못했습니다.'; return; }
-        const records = new Map();
-        const recordFor = id => { if (!records.has(id)) records.set(id, { wins:0, total:0 }); return records.get(id); };
-        (finishedDebates || []).forEach(debate => {
-          const leftVotes = (debate.votes || []).filter(vote => vote.chosen_side === 'left').length;
-          const rightVotes = (debate.votes || []).filter(vote => vote.chosen_side === 'right').length;
-          if (leftVotes === rightVotes) return;
-          const winnerId = leftVotes > rightVotes ? debate.creator_id : debate.opponent_id;
-          [debate.creator_id, debate.opponent_id].forEach(id => recordFor(id).total += 1);
-          recordFor(winnerId).wins += 1;
-        });
-        const ranked = [...records.entries()].filter(([, record]) => record.total > 0).map(([id, record]) => ({ id, ...record, rate: record.wins / record.total })).sort((a, b) => b.rate - a.rate || b.wins - a.wins || b.total - a.total).slice(0, 3);
         if (!ranked.length) { rankList.textContent = '아직 승부가 확정된 토론이 없습니다.'; return; }
-        const { data: profiles } = await supabase.from('profiles').select('id,nickname').in('id', ranked.map(record => record.id));
-        const names = new Map((profiles || []).map(profile => [profile.id, profile.nickname]));
         rankList.replaceChildren();
         ranked.forEach((record, index) => {
           const row = document.createElement('div'); row.className = 'rank';
           const place = document.createElement('strong'); place.textContent = String(index + 1).padStart(2, '0');
-          const name = names.get(record.id) || '탈퇴한 사용자'; const avatar = document.createElement('span'); avatar.className = 'avatar'; avatar.textContent = name.slice(0, 1);
+          const name = record.nickname || '탈퇴한 사용자'; const avatar = document.createElement('span'); avatar.className = 'avatar'; avatar.textContent = name.slice(0, 1);
           const user = document.createElement('div'); user.className = 'user'; const userName = document.createElement('b'); userName.textContent = name; const info = document.createElement('span'); info.textContent = `${record.wins}승 ${record.total - record.wins}패`; user.append(userName, info);
-          const rate = document.createElement('span'); rate.className = 'points'; rate.textContent = `승률 ${Math.round(record.rate * 100)}%`;
+          const rate = document.createElement('span'); rate.className = 'points'; rate.textContent = `승률 ${Math.round(Number(record.wins) / Number(record.total) * 100)}%`;
           row.append(place, avatar, user, rate); rankList.append(row);
         });
       }
