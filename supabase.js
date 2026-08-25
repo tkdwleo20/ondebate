@@ -37,7 +37,7 @@ export async function changeNickname(nickname) {
 function ensureNotificationStyle() {
   if (document.getElementById('notification-style')) return;
   const style = document.createElement('style'); style.id = 'notification-style';
-  style.textContent = '.notification-link{position:relative;display:inline-grid;place-items:center;width:30px;height:30px;color:#555;text-decoration:none}.notification-link svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}.notification-badge{position:absolute;top:1px;right:0;display:none;min-width:15px;height:15px;padding:0 3px;border-radius:9px;background:#d85a50;color:#fff;font:700 10px/15px Arial,sans-serif;text-align:center}.notification-link.has-unread .notification-badge{display:block}';
+  style.textContent = '.notification-link{position:relative;display:inline-grid;place-items:center;width:30px;height:30px;padding:0;border:0;background:transparent;color:#555;cursor:pointer}.notification-link svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}.notification-badge{position:absolute;top:1px;right:0;display:none;min-width:15px;height:15px;padding:0 3px;border-radius:9px;background:#d85a50;color:#fff;font:700 10px/15px Arial,sans-serif;text-align:center}.notification-link.has-unread .notification-badge{display:block}.notification-panel{position:absolute;z-index:20;top:38px;right:0;display:none;width:min(330px,calc(100vw - 24px));max-height:390px;overflow:auto;border:1px solid #d8d1be;background:repeating-linear-gradient(#fffdf4 0,#fffdf4 27px,#eee6d4 28px);box-shadow:0 8px 22px rgba(0,0,0,.16);padding:8px 0}.notification-panel.open{display:block}.notification-panel-title{padding:5px 14px 10px;color:#555;font:700 13px "Noto Sans KR",sans-serif}.notification-item{display:block;padding:10px 14px;color:#333;text-decoration:none;font:12px/1.55 "Noto Sans KR",sans-serif}.notification-item:hover{background:rgba(255,255,255,.7)}.notification-item time{display:block;margin-top:3px;color:#999;font-size:11px}.notification-empty{padding:14px;color:#888;font:12px "Noto Sans KR",sans-serif}';
   document.head.append(style);
 }
 
@@ -48,6 +48,21 @@ async function refreshNotificationBadge(target, userId) {
   badge.textContent = unread > 99 ? '99+' : unread;
   link.classList.toggle('has-unread', unread > 0);
   link.setAttribute('aria-label', unread ? `읽지 않은 알림 ${unread}개` : '알림');
+}
+
+async function openNotificationPanel(target, userId) {
+  const panel = target.querySelector('.notification-panel');
+  panel.classList.add('open');
+  panel.innerHTML = '<div class="notification-panel-title">알림</div><div class="notification-empty">알림을 불러오는 중입니다.</div>';
+  const { data: items, error } = await supabase.from('notifications').select('id,debate_id,body,is_read,created_at').eq('recipient_id', userId).order('created_at', { ascending:false }).limit(8);
+  if (error) { panel.innerHTML = '<div class="notification-panel-title">알림</div><div class="notification-empty">알림을 불러오지 못했습니다.</div>'; return; }
+  panel.replaceChildren();
+  const title = document.createElement('div'); title.className = 'notification-panel-title'; title.textContent = '알림'; panel.append(title);
+  if (!items?.length) { const empty = document.createElement('div'); empty.className = 'notification-empty'; empty.textContent = '새 알림이 없습니다.'; panel.append(empty); return; }
+  const formatter = new Intl.DateTimeFormat('ko-KR', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
+  items.forEach(item => { const row = document.createElement('a'); row.className = 'notification-item'; row.href = item.debate_id ? `debate-detail.html?id=${item.debate_id}` : 'index.html'; row.textContent = item.body; const time = document.createElement('time'); time.textContent = formatter.format(new Date(item.created_at)); row.append(time); panel.append(row); });
+  const unread = items.filter(item => !item.is_read).map(item => item.id);
+  if (unread.length) { await supabase.from('notifications').update({ is_read:true }).in('id', unread).eq('recipient_id', userId); refreshNotificationBadge(target, userId); }
 }
 
 export async function mountAuthState(targetId) {
@@ -64,11 +79,15 @@ export async function mountAuthState(targetId) {
   ensureNotificationStyle();
   target.replaceChildren();
   const account = document.createElement('a'); account.className = 'account-link'; account.href = 'my.html'; account.textContent = nickname;
-  const notification = document.createElement('a'); notification.className = 'notification-link'; notification.href = 'notifications.html'; notification.setAttribute('aria-label', '알림'); notification.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg><span class="notification-badge"></span>';
+  target.style.position = 'relative';
+  const notification = document.createElement('button'); notification.className = 'notification-link'; notification.type = 'button'; notification.setAttribute('aria-label', '알림'); notification.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg><span class="notification-badge"></span>';
   const logout = document.createElement('button'); logout.className = 'logout-button'; logout.type = 'button'; logout.textContent = '로그아웃';
-  target.append(account, notification, logout);
+  const panel = document.createElement('div'); panel.className = 'notification-panel';
+  target.append(account, notification, logout, panel);
   await refreshNotificationBadge(target, user.id);
   window.setInterval(() => refreshNotificationBadge(target, user.id), 60000);
+  notification.addEventListener('click', async event => { event.stopPropagation(); if (panel.classList.contains('open')) { panel.classList.remove('open'); return; } await openNotificationPanel(target, user.id); });
+  document.addEventListener('click', event => { if (!target.contains(event.target)) panel.classList.remove('open'); });
   logout.addEventListener('click', async () => {
     await supabase.auth.signOut();
     location.href = 'index.html';
