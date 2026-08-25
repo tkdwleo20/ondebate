@@ -18,9 +18,9 @@
     </style>
   </head>
   <body>
-    <header><a class="brand" href="index.html">On<i>Debate</i></a><nav><a href="index.html#popular"><span class="desktop-nav">인기 토론</span><span class="mobile-nav">인기 토론</span></a><a class="active" href="index.html#categories">카테고리</a></nav><a class="start" href="create-debate.html">토론 시작하기</a><span id="auth-area"><a class="account-link" href="login.html">로그인</a></span></header>
+    <header><a class="brand" href="index.html">On<i>Debate</i></a><nav><a href="index.html#popular"><span class="desktop-nav">인기 토론</span><span class="mobile-nav">인기 토론</span></a><a class="active" href="index.html#categories">카테고리</a></nav><a class="start" href="login.html?next=create-debate.html">토론 시작하기</a><span id="auth-area"><a class="account-link" href="login.html">로그인</a></span></header>
     <main><a class="back" href="index.html#categories">← 카테고리로 돌아가기</a><section class="section"><h1 id="page-title">카테고리 토론 <span id="count"></span></h1><div id="debate-list"><div class="empty">토론을 불러오는 중입니다.</div></div></section><nav class="pagination" id="pagination" aria-label="목록 페이지"></nav></main>
-    <a class="mobile-start" href="create-debate.html">＋ 토론 시작하기</a>
+    <a class="mobile-start" href="login.html?next=create-debate.html">＋ 토론 시작하기</a>
     <script type="module">
       import { supabase, mountAuthState } from './supabase.js';
       mountAuthState('auth-area');
