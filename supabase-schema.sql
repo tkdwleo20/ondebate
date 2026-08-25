@@ -79,9 +79,21 @@ create table public.reports (
   check (num_nonnulls(debate_id, message_id, comment_id) = 1)
 );
 
+create table public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  recipient_id uuid not null references public.profiles(id) on delete cascade,
+  actor_id uuid references public.profiles(id) on delete set null,
+  debate_id uuid references public.debates(id) on delete cascade,
+  type text not null check (type in ('opponent_message', 'message_comment', 'debate_comment')),
+  body text not null,
+  is_read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
 create index debates_status_end_idx on public.debates(status, ends_at);
 create index debate_messages_debate_created_idx on public.debate_messages(debate_id, created_at);
 create index votes_debate_idx on public.votes(debate_id);
+create index notifications_recipient_unread_idx on public.notifications(recipient_id, is_read, created_at desc);
 create unique index profiles_nickname_case_insensitive_idx on public.profiles (lower(nickname));
 
 alter table public.profiles enable row level security;
@@ -92,6 +104,7 @@ alter table public.debate_comments enable row level security;
 alter table public.votes enable row level security;
 alter table public.point_ledger enable row level security;
 alter table public.reports enable row level security;
+alter table public.notifications enable row level security;
 
 create policy "Public profiles are readable" on public.profiles for select using (true);
 create policy "Users create their own profile" on public.profiles for insert to authenticated with check ((select auth.uid()) = id);
@@ -116,6 +129,8 @@ create policy "A non-participant votes once" on public.votes for insert to authe
 create policy "Users read their own point history" on public.point_ledger for select to authenticated using ((select auth.uid()) = user_id);
 create policy "Users submit reports" on public.reports for insert to authenticated with check ((select auth.uid()) = reporter_id);
 create policy "Users read their own reports" on public.reports for select to authenticated using ((select auth.uid()) = reporter_id);
+create policy "Users read their own notifications" on public.notifications for select to authenticated using ((select auth.uid()) = recipient_id);
+create policy "Users update their own notifications" on public.notifications for update to authenticated using ((select auth.uid()) = recipient_id) with check ((select auth.uid()) = recipient_id);
 
 -- Message insertion, opponent joining, point awards, and moderator actions will use
 -- database functions in the next implementation step. Keeping these operations out
