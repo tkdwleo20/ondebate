@@ -13,8 +13,8 @@
     </style>
   </head>
   <body>
-    <header><a class="brand" href="index.html">On<i>Debate</i></a><nav><a href="index.html#popular"><span class="desktop-nav">인기 토론</span><span class="mobile-nav">인기 토론</span></a><a href="index.html#categories">카테고리</a></nav><a class="start" href="create-debate.html">토론 시작하기</a><span id="auth-area"><a class="account-link" href="login.html">로그인</a></span></header>
-    <main><form class="search-form" action="search.html" method="get"><input id="query" name="q" type="search" required aria-label="토론 검색" placeholder="토론 주제를 검색하세요" /><button type="submit">검색</button></form><section class="section"><h1 id="title">검색 결과 <span id="count"></span></h1><div id="results"><div class="empty">검색어를 입력해 주세요.</div></div></section></main><a class="mobile-start" href="create-debate.html">＋ 토론 시작하기</a>
+    <header><a class="brand" href="index.html">On<i>Debate</i></a><nav><a href="index.html#popular"><span class="desktop-nav">인기 토론</span><span class="mobile-nav">인기 토론</span></a><a href="index.html#categories">카테고리</a></nav><a class="start" href="login.html?next=create-debate.html">토론 시작하기</a><span id="auth-area"><a class="account-link" href="login.html">로그인</a></span></header>
+    <main><form class="search-form" action="search.html" method="get"><input id="query" name="q" type="search" required aria-label="토론 검색" placeholder="토론 주제를 검색하세요" /><button type="submit">검색</button></form><section class="section"><h1 id="title">검색 결과 <span id="count"></span></h1><div id="results"><div class="empty">검색어를 입력해 주세요.</div></div></section></main><a class="mobile-start" href="login.html?next=create-debate.html">＋ 토론 시작하기</a>
     <script type="module">
       import { supabase, mountAuthState } from './supabase.js'; mountAuthState('auth-area');
       const query = new URLSearchParams(location.search).get('q')?.trim() || ''; const input = document.getElementById('query'); const title = document.getElementById('title'); const results = document.getElementById('results'); input.value = query;
