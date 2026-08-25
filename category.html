@@ -43,7 +43,7 @@
       }
       if (!categories.includes(name)) { title.textContent = '카테고리를 찾을 수 없습니다.'; list.innerHTML = '<div class="empty">메인 화면에서 카테고리를 선택해 주세요.</div>'; pagination.hidden = true; }
       else {
-        title.firstChild.textContent = `${name} 토론 `;
+        title.firstChild.textContent = `${name} `;
         const { data: debates, error, count } = await supabase.from('debates').select('id,title,status,ends_at,debate_messages(body,created_at)', { count:'exact' }).eq('category', name).neq('status', 'hidden').order('created_at', { ascending:false }).range((page - 1) * pageSize, page * pageSize - 1);
         if (error) list.innerHTML = '<div class="empty">토론 목록을 불러오지 못했습니다.</div>';
         else if (!debates?.length) list.innerHTML = `<div class="empty">${name} 카테고리에 아직 등록된 토론이 없습니다.</div>`;
