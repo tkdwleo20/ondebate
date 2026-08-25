@@ -62,7 +62,7 @@ function ensureNotificationStyle() {
 
 async function refreshNotificationBadge(target, userId) {
   const link = target.querySelector('.notification-link'); if (!link) return;
-  const { count } = await supabase.from('notifications').select('id', { count:'exact', head:true }).eq('recipient_id', userId).eq('is_read', false);
+  const { count } = await supabase.from('notifications').select('id', { count:'exact', head:true }).eq('recipient_id', userId).eq('is_read', false).is('deleted_at', null);
   const badge = link.querySelector('.notification-badge'); const unread = count || 0;
   badge.textContent = unread > 99 ? '99+' : unread;
   link.classList.toggle('has-unread', unread > 0);
@@ -73,7 +73,7 @@ async function openNotificationPanel(target, userId) {
   const panel = target.querySelector('.notification-panel');
   panel.classList.add('open');
   panel.innerHTML = '<div class="notification-panel-head"><div class="notification-panel-title">알림</div><button class="notification-clear" type="button">모두 지우기</button></div><div class="notification-empty">알림을 불러오는 중입니다.</div>';
-  const { data: items, error } = await supabase.from('notifications').select('id,debate_id,body,is_read,created_at').eq('recipient_id', userId).order('created_at', { ascending:false }).limit(8);
+  const { data: items, error } = await supabase.from('notifications').select('id,debate_id,body,is_read,created_at').eq('recipient_id', userId).is('deleted_at', null).order('created_at', { ascending:false }).limit(8);
   if (error) { panel.innerHTML = '<div class="notification-panel-head"><div class="notification-panel-title">알림</div></div><div class="notification-empty">알림을 불러오지 못했습니다.</div>'; return; }
   panel.replaceChildren();
   const head = document.createElement('div'); head.className = 'notification-panel-head'; const title = document.createElement('div'); title.className = 'notification-panel-title'; title.textContent = '알림'; const clear = document.createElement('button'); clear.type = 'button'; clear.className = 'notification-clear'; clear.textContent = '모두 지우기'; clear.disabled = !items?.length; head.append(title, clear); panel.append(head);
@@ -81,8 +81,7 @@ async function openNotificationPanel(target, userId) {
   if (!items?.length) { const empty = document.createElement('div'); empty.className = 'notification-empty'; empty.textContent = '새 알림이 없습니다.'; panel.append(empty); return; }
   const formatter = new Intl.DateTimeFormat('ko-KR', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
   items.forEach(item => { const row = document.createElement('a'); row.className = 'notification-item'; row.href = item.debate_id ? `debate-detail.html?id=${item.debate_id}` : 'index.html'; row.textContent = item.body; const time = document.createElement('time'); time.textContent = formatter.format(new Date(item.created_at)); row.append(time); panel.append(row); });
-  const unread = items.filter(item => !item.is_read).map(item => item.id);
-  if (unread.length) { await supabase.from('notifications').update({ is_read:true }).in('id', unread).eq('recipient_id', userId); refreshNotificationBadge(target, userId); }
+  if (items?.length) { await supabase.from('notifications').update({ is_read:true }).eq('recipient_id', userId).is('deleted_at', null); refreshNotificationBadge(target, userId); }
 }
 
 export async function mountAuthState(targetId) {
@@ -118,4 +117,3 @@ export async function mountAuthState(targetId) {
     location.href = 'index.html';
   });
 }
-
