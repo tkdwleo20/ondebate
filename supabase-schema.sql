@@ -62,8 +62,9 @@ create table public.point_ledger (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles(id) on delete cascade,
   amount integer not null,
-  reason text not null check (reason in ('daily_checkin', 'debate_entry', 'mutual_agreement', 'vote_win', 'moderation_penalty')),
+  reason text not null check (reason in ('signup_bonus','daily_checkin','debate_create','debate_join','debate_started','debate_win','vote_participation','audience_bonus','no_opponent_refund','moderation_penalty')),
   debate_id uuid references public.debates(id) on delete set null,
+  event_key text,
   created_at timestamptz not null default now()
 );
 
@@ -93,6 +94,7 @@ create table public.notifications (
 create index debates_status_end_idx on public.debates(status, ends_at);
 create index debate_messages_debate_created_idx on public.debate_messages(debate_id, created_at);
 create index votes_debate_idx on public.votes(debate_id);
+create unique index point_ledger_event_key_unique on public.point_ledger(user_id, event_key) where event_key is not null;
 create index notifications_recipient_unread_idx on public.notifications(recipient_id, is_read, created_at desc);
 create unique index profiles_nickname_case_insensitive_idx on public.profiles (lower(nickname));
 
