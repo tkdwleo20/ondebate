@@ -56,6 +56,23 @@ begin
 end; $$;
 grant execute on function public.admin_delete_debate(uuid) to authenticated;
 
+create or replace function public.admin_debates()
+returns table (id uuid, title text, category text, status text, created_at timestamptz, ends_at timestamptz, creator_nickname text, opponent_nickname text, messages_count bigint, comments_count bigint, votes_count bigint)
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_admin() then raise exception '관리자 권한이 필요합니다.'; end if;
+  return query select d.id, d.title, d.category, d.status, d.created_at, d.ends_at,
+    coalesce(creator.nickname, '탈퇴한 사용자'), coalesce(opponent.nickname, '상대 미정'),
+    (select count(*) from public.debate_messages m where m.debate_id = d.id),
+    ((select count(*) from public.message_comments mc join public.debate_messages m on m.id = mc.message_id where m.debate_id = d.id) + (select count(*) from public.debate_comments dc where dc.debate_id = d.id)),
+    (select count(*) from public.votes v where v.debate_id = d.id)
+  from public.debates d
+  left join public.profiles creator on creator.id = d.creator_id
+  left join public.profiles opponent on opponent.id = d.opponent_id
+  order by d.created_at desc;
+end; $$;
+grant execute on function public.admin_debates() to authenticated;
+
 create or replace function public.admin_members()
 returns table (user_id uuid, nickname text, points integer, joined_at timestamptz, debates_count bigint, messages_count bigint, comments_count bigint, reports_received bigint)
 language plpgsql security definer set search_path = public as $$
