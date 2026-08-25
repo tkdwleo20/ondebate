@@ -6,6 +6,12 @@ export const supabase = createClient(
   'sb_publishable_cJv4iU4Aod6RVY8se0TiZg_oXS0Ukdk'
 );
 
+// Level 1 covers 0–1,999P. From 2,000P onward, every additional 1,000P
+// increases the displayed level by one.
+export function levelForPoints(points = 0) {
+  return Math.max(1, Math.floor(Number(points) / 1000));
+}
+
 // The header initially has a login route so signed-out visitors are protected.
 // Intercept it for signed-in visitors to avoid a visible login-page flash.
 document.addEventListener('click', async event => {
