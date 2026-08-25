@@ -75,7 +75,7 @@ language sql stable security definer set search_path = public as $$
   select
     count(*) filter (where v.chosen_side = 'left'),
     count(*) filter (where v.chosen_side = 'right'),
-    count(*),
+    count(v.id),
     max(v.chosen_side) filter (where v.voter_id = auth.uid())
   from public.debates d
   left join public.votes v on v.debate_id = d.id
@@ -250,4 +250,3 @@ grant execute on function public.admin_members() to authenticated;
 grant execute on function public.admin_member_activity(uuid) to authenticated;
 grant execute on function public.admin_dismiss_report(uuid) to authenticated;
 grant execute on function public.is_admin() to authenticated;
-
