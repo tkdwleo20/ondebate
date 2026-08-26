@@ -38,7 +38,7 @@
     </main>
     <a class="mobile-start" href="login.html?next=create-debate.html">＋ 토론 시작하기</a>
     <script type="module">
-      import { supabase, getProfile, levelForPoints, mountAuthState } from './supabase.js';
+      import { supabase, getProfile, levelForPoints, mountAuthState } from './supabase.js?v=auth-header-2';
       mountAuthState('auth-area');
       const debateId = new URLSearchParams(location.search).get('id');
       let viewerKey = localStorage.getItem('ondebate-viewer-key'); if (!viewerKey) { viewerKey = crypto.randomUUID(); localStorage.setItem('ondebate-viewer-key', viewerKey); }
