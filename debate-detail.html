@@ -21,9 +21,6 @@
       @media(max-width:700px) { header { height:58px; padding:0 14px; gap:0; } .brand { font-size:19px; } nav { margin-left:17px; gap:16px; } nav a { font-size:12px; text-align:center; line-height:1.15; } .desktop-nav { display:none; } .mobile-nav { display:inline; } .start { display:none; } #auth-area { margin-left:auto; min-width:0; } #auth-area .account-link { max-width:62px; overflow:hidden; text-overflow:ellipsis; font-size:12px; font-weight:800; } #auth-area .logout-button { display:none; } .mobile-start { display:flex; position:fixed; right:18px; bottom:20px; z-index:4; align-items:center; background:#303030; color:#fff; text-decoration:none; border-radius:24px; padding:13px 17px; box-shadow:0 5px 16px rgba(0,0,0,.22); font-size:13px; font-weight:700; } main { width:calc(100% - 24px); margin-top:12px; } .topic,.timeline { padding:18px 14px; } h1 { font-size:19px; } .topic-info { flex-wrap:wrap; gap:7px 10px; } .vote-count { margin-left:0; } .message { width:fit-content; max-width:92%; } .message-box { font-size:13px; } .comments { padding:0 14px 14px; } .comment-form { padding:14px; } }
     </style>
     <style>
-      .back-to-list { margin-top:18px; display:flex; justify-content:flex-start; }
-      .back-to-list button { border:1px solid var(--line); background:#fff; color:#666; padding:8px 11px; font:12px "Noto Sans KR",sans-serif; cursor:pointer; }
-      .back-to-list button:hover { color:#222; border-color:#aaa; }
       .source-list { margin-top:18px; background:#fff; border:1px solid var(--line); }
       .source-list[hidden] { display:none; }
       .source-list h2 { margin:0; padding:15px 18px; border-bottom:1px solid var(--line); font-size:14px; }
@@ -32,7 +29,6 @@
       .source-list a:hover { background:#fafafa; color:#222; }
       .source-list a.is-current { background:#f7f7f7; color:#222; font-weight:700; }
       .source-list a.is-current small { margin-left:7px; color:#a55a52; font-size:10px; font-weight:600; }
-      @media(max-width:700px) { .back-to-list { margin-top:14px; } }
     </style>
   </head>
   <body>
@@ -48,7 +44,6 @@
         </form>
       </article>
       <section class="section"><div class="winner"><p id="vote-notice">토론 종료 전까지 관전자 한 표를 행사할 수 있습니다.</p><div class="vote-options"><button class="vote-option" id="vote-left"><b>왼쪽 주장에 투표</b><span>현재 0표</span></button><button class="vote-option" id="vote-right"><b>오른쪽 주장에 투표</b><span>현재 0표</span></button></div><div class="vote-result" id="vote-result" hidden><div class="vote-result-labels"><span id="left-rate">왼쪽 0%</span><span id="right-rate">오른쪽 0%</span></div><div class="vote-bar"><span class="vote-bar-left" id="left-bar"></span><span class="vote-bar-right" id="right-bar"></span></div></div></div></section>
-      <div class="back-to-list"><button id="back-to-list" type="button">← 목록으로</button></div>
       <section class="section"><h2>관전자 댓글 <span id="debate-comment-count" style="color:#888;font-size:12px;font-weight:500">0</span></h2><div class="comments" id="debate-comments"></div><form class="comment-form" id="debate-comment-form" hidden><input id="debate-comment-body" placeholder="토론 전체에 대한 의견을 남겨주세요" maxlength="1000" /><button type="submit">등록</button></form></section>
       <section class="source-list" id="source-list" hidden><h2 id="source-list-title">목록의 다른 글</h2><div id="source-list-items"></div></section>
     </main>
@@ -71,14 +66,6 @@
           }
         } catch (_) { /* Direct visit: there is no previous list to restore. */ }
       }
-      document.getElementById('back-to-list').addEventListener('click', () => {
-        const allowedListPaths = ['/', '/index.html', '/category.html', '/search.html', '/popular.html', '/my.html'];
-        try {
-          const previous = new URL(document.referrer);
-          if (previous.origin === location.origin && allowedListPaths.includes(previous.pathname)) { location.href = previous.href; return; }
-        } catch (_) { /* Opened directly without a usable referrer. */ }
-        location.href = 'index.html';
-      });
       let viewerKey = localStorage.getItem('ondebate-viewer-key'); if (!viewerKey) { viewerKey = crypto.randomUUID(); localStorage.setItem('ondebate-viewer-key', viewerKey); }
       const timeline = document.getElementById('timeline');
       const messageForm = document.getElementById('message-form'); const messageFormTitle = document.getElementById('message-form-title'); const messageFormDescription = document.getElementById('message-form-description'); const messageBody = document.getElementById('message-body'); const messageNotice = document.getElementById('message-notice'); const messageSubmit = document.getElementById('message-submit');
