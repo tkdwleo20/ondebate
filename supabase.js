@@ -24,7 +24,7 @@ document.addEventListener('click', async event => {
 
 // Keep the shared header navigation consistent across every existing page.
 document.querySelectorAll('a[href="index.html#popular"], a[href="#popular"]').forEach(link => { link.href = 'popular.html'; });
-document.querySelectorAll('a[href="index.html#categories"]').forEach(link => { link.href = 'index.html?section=categories'; });
+document.querySelectorAll('a[href="index.html#categories"]').forEach(link => { link.href = 'index.html?section=categories&nav=1'; });
 
 export async function getProfile() {
   const { data: { user } } = await supabase.auth.getUser();
