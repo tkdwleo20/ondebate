@@ -38,7 +38,6 @@ document.addEventListener('click', event => {
   if (page === 'popular.html') destination.searchParams.set('from', cardLink.closest('#daily') ? 'popular-daily' : 'popular-weekly');
   else if (page === 'category.html') { destination.searchParams.set('from', 'category'); destination.searchParams.set('category', new URLSearchParams(location.search).get('name') || ''); }
   else if (page === 'search.html') { destination.searchParams.set('from', 'search'); destination.searchParams.set('q', new URLSearchParams(location.search).get('q') || ''); }
-  else if (page === 'my.html') destination.searchParams.set('from', 'my');
   else if (page === 'index.html' || page === '') destination.searchParams.set('from', 'home');
   else return;
   cardLink.href = destination.href;
