@@ -88,7 +88,7 @@ export async function mountAuthState(targetId) {
   const target = document.getElementById(targetId);
   if (!target) return;
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user) { target.style.visibility = 'visible'; return; }
   const profile = await getProfile();
   if (!profile || /^토론자[0-9a-f]{6}$/i.test(profile.nickname)) {
     location.href = `nickname.html?next=${encodeURIComponent(location.pathname.split('/').pop() || 'index.html')}`;
@@ -108,6 +108,7 @@ export async function mountAuthState(targetId) {
   const logout = document.createElement('button'); logout.className = 'logout-button'; logout.type = 'button'; logout.textContent = '로그아웃';
   const panel = document.createElement('div'); panel.className = 'notification-panel';
   target.append(account, notification, logout, panel);
+  target.style.visibility = 'visible';
   await refreshNotificationBadge(target, user.id);
   window.setInterval(() => refreshNotificationBadge(target, user.id), 60000);
   notification.addEventListener('click', async event => { event.stopPropagation(); if (panel.classList.contains('open')) { panel.classList.remove('open'); return; } await openNotificationPanel(target, user.id); });
@@ -117,3 +118,4 @@ export async function mountAuthState(targetId) {
     location.href = 'index.html';
   });
 }
+
