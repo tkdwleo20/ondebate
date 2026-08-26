@@ -20,6 +20,12 @@
       .comments { padding:0 20px 20px; } .comment { padding:15px 0; border-bottom:1px solid var(--line); } .comment.reply-comment { margin-left:20px; padding-left:13px; border-left:2px solid #eee; } .comment-head { font-size:12px; } .comment-head b { margin-right:7px; } .comment-head span { color:#999; } .comment p { font-size:13px; margin:7px 0 0; line-height:1.6; } .comment-reply { border:0; background:none; color:#777; padding:0; margin-top:7px; font-size:11px; cursor:pointer; } .comment-form { padding:16px 20px; background:#fafafa; border-top:1px solid var(--line); display:flex; gap:7px; } .comment-form input { min-width:0; flex:1; height:39px; border:1px solid #d8d8d8; padding:0 10px; font-size:13px; } .comment-form button { border:0; background:#3b3b3b; color:#fff; padding:0 15px; font-size:12px; cursor:pointer; } .nested-comment-form { display:flex; gap:6px; margin-top:10px; } .nested-comment-form input { min-width:0; flex:1; height:32px; border:1px solid #d8d8d8; padding:0 9px; font-size:12px; } .nested-comment-form button { border:1px solid #555; background:#fff; color:#555; padding:0 10px; font-size:11px; cursor:pointer; }
       @media(max-width:700px) { header { height:58px; padding:0 14px; gap:0; } .brand { font-size:19px; } nav { margin-left:17px; gap:16px; } nav a { font-size:12px; text-align:center; line-height:1.15; } .desktop-nav { display:none; } .mobile-nav { display:inline; } .start { display:none; } #auth-area { margin-left:auto; min-width:0; } #auth-area .account-link { max-width:62px; overflow:hidden; text-overflow:ellipsis; font-size:12px; font-weight:800; } #auth-area .logout-button { display:none; } .mobile-start { display:flex; position:fixed; right:18px; bottom:20px; z-index:4; align-items:center; background:#303030; color:#fff; text-decoration:none; border-radius:24px; padding:13px 17px; box-shadow:0 5px 16px rgba(0,0,0,.22); font-size:13px; font-weight:700; } main { width:calc(100% - 24px); margin-top:12px; } .topic,.timeline { padding:18px 14px; } h1 { font-size:19px; } .topic-info { flex-wrap:wrap; gap:7px 10px; } .vote-count { margin-left:0; } .message { width:fit-content; max-width:92%; } .message-box { font-size:13px; } .comments { padding:0 14px 14px; } .comment-form { padding:14px; } }
     </style>
+    <style>
+      .back-to-list { margin-top:18px; display:flex; justify-content:flex-start; }
+      .back-to-list button { border:1px solid var(--line); background:#fff; color:#666; padding:8px 11px; font:12px "Noto Sans KR",sans-serif; cursor:pointer; }
+      .back-to-list button:hover { color:#222; border-color:#aaa; }
+      @media(max-width:700px) { .back-to-list { margin-top:14px; } }
+    </style>
   </head>
   <body>
     <header><a class="brand" href="index.html">On<i>Debate</i></a><nav><a href="index.html#popular"><span class="desktop-nav">인기 토론</span><span class="mobile-nav">인기 토론</span></a><a href="index.html#categories">카테고리</a></nav><a class="start" href="login.html?next=create-debate.html">토론 시작하기</a><span id="auth-area" style="visibility:hidden"><a class="account-link" href="login.html">로그인</a></span></header>
@@ -34,6 +40,7 @@
         </form>
       </article>
       <section class="section"><div class="winner"><p id="vote-notice">토론 종료 전까지 관전자 한 표를 행사할 수 있습니다.</p><div class="vote-options"><button class="vote-option" id="vote-left"><b>왼쪽 주장에 투표</b><span>현재 0표</span></button><button class="vote-option" id="vote-right"><b>오른쪽 주장에 투표</b><span>현재 0표</span></button></div><div class="vote-result" id="vote-result" hidden><div class="vote-result-labels"><span id="left-rate">왼쪽 0%</span><span id="right-rate">오른쪽 0%</span></div><div class="vote-bar"><span class="vote-bar-left" id="left-bar"></span><span class="vote-bar-right" id="right-bar"></span></div></div></div></section>
+      <div class="back-to-list"><button id="back-to-list" type="button">← 글 목록으로</button></div>
       <section class="section"><h2>관전자 댓글 <span id="debate-comment-count" style="color:#888;font-size:12px;font-weight:500">0</span></h2><div class="comments" id="debate-comments"></div><form class="comment-form" id="debate-comment-form" hidden><input id="debate-comment-body" placeholder="토론 전체에 대한 의견을 남겨주세요" maxlength="1000" /><button type="submit">등록</button></form></section>
     </main>
     <a class="mobile-start" href="login.html?next=create-debate.html">＋ 토론 시작하기</a>
@@ -41,6 +48,14 @@
       import { supabase, getProfile, levelForPoints, mountAuthState } from './supabase.js?v=auth-header-2';
       mountAuthState('auth-area');
       const debateId = new URLSearchParams(location.search).get('id');
+      document.getElementById('back-to-list').addEventListener('click', () => {
+        const allowedListPaths = ['/', '/index.html', '/category.html', '/search.html', '/popular.html', '/my.html'];
+        try {
+          const previous = new URL(document.referrer);
+          if (previous.origin === location.origin && allowedListPaths.includes(previous.pathname)) { location.href = previous.href; return; }
+        } catch (_) { /* Opened directly without a usable referrer. */ }
+        location.href = 'index.html';
+      });
       let viewerKey = localStorage.getItem('ondebate-viewer-key'); if (!viewerKey) { viewerKey = crypto.randomUUID(); localStorage.setItem('ondebate-viewer-key', viewerKey); }
       const timeline = document.getElementById('timeline');
       const messageForm = document.getElementById('message-form'); const messageFormTitle = document.getElementById('message-form-title'); const messageFormDescription = document.getElementById('message-form-description'); const messageBody = document.getElementById('message-body'); const messageNotice = document.getElementById('message-notice'); const messageSubmit = document.getElementById('message-submit');
