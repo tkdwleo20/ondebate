@@ -26,6 +26,25 @@ document.addEventListener('click', async event => {
 document.querySelectorAll('a[href="index.html#popular"], a[href="#popular"]').forEach(link => { link.href = 'popular.html'; });
 document.querySelectorAll('a[href="index.html#categories"]').forEach(link => { link.href = 'index.html?section=categories&nav=1'; });
 
+// Preserve the list a visitor came from so the debate detail can show the
+// matching list again below its comments.
+document.addEventListener('click', event => {
+  const clickedLink = event.target.closest?.('a[href^="debate-detail.html?id="]');
+  const cardLink = clickedLink || event.target.closest?.('article')?.querySelector('a[href^="debate-detail.html?id="]');
+  if (!cardLink) return;
+  const page = location.pathname.split('/').pop() || 'index.html';
+  const destination = new URL(cardLink.href, location.href);
+  if (destination.searchParams.has('from')) return;
+  if (page === 'popular.html') destination.searchParams.set('from', cardLink.closest('#daily') ? 'popular-daily' : 'popular-weekly');
+  else if (page === 'category.html') { destination.searchParams.set('from', 'category'); destination.searchParams.set('category', new URLSearchParams(location.search).get('name') || ''); }
+  else if (page === 'search.html') { destination.searchParams.set('from', 'search'); destination.searchParams.set('q', new URLSearchParams(location.search).get('q') || ''); }
+  else if (page === 'my.html') destination.searchParams.set('from', 'my');
+  else if (page === 'index.html' || page === '') destination.searchParams.set('from', 'home');
+  else return;
+  cardLink.href = destination.href;
+  if (!clickedLink) { event.preventDefault(); event.stopImmediatePropagation(); location.href = destination.href; }
+}, true);
+
 export async function getProfile() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
