@@ -90,6 +90,9 @@
           categoryList.append(button);
         });
         renderDebates();
+        if (new URLSearchParams(location.search).get('section') === 'categories') {
+          requestAnimationFrame(() => document.getElementById('categories').scrollIntoView({ block:'start' }));
+        }
       }
 
       async function renderRankings() {
