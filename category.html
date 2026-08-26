@@ -22,7 +22,7 @@
     <main><a class="back" href="index.html#categories">← 카테고리로 돌아가기</a><section class="section"><h1 id="page-title">카테고리 토론 <span id="count"></span></h1><div id="debate-list"><div class="empty">토론을 불러오는 중입니다.</div></div></section><nav class="pagination" id="pagination" aria-label="목록 페이지"></nav></main>
     <a class="mobile-start" href="login.html?next=create-debate.html">＋ 토론 시작하기</a>
     <script type="module">
-      import { supabase, mountAuthState } from './supabase.js';
+      import { supabase, mountAuthState } from './supabase.js?v=auth-header-2';
       mountAuthState('auth-area');
       const categories = ['일상', '사회 · 정치', '연애', '문화 · 취미', '게임 · 스포츠', '학교 · 직장'];
       const params = new URLSearchParams(location.search);
