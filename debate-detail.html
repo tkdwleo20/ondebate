@@ -94,15 +94,15 @@
         const panel = document.getElementById('source-list'); const title = document.getElementById('source-list-title'); const items = document.getElementById('source-list-items');
         let label = '목록의 다른 글', rows = [], error = null;
         if (sourceType === 'home') {
-          label = '지금 뜨거운 토론'; ({ data:rows, error } = await supabase.rpc('list_debates_page', { p_category:null, p_page:1, p_page_size:20 }));
+          label = '지금 뜨거운 토론 다른 글'; ({ data:rows, error } = await supabase.rpc('list_debates_page', { p_category:null, p_page:1, p_page_size:20 }));
         } else if (sourceType === 'category') {
-          const category = detailParams.get('category') || ''; label = `${category} 토론`;
+          const category = detailParams.get('category') || ''; label = `${category} 다른 글`;
           ({ data:rows, error } = await supabase.rpc('list_debates_page', { p_category:category, p_page:1, p_page_size:20 }));
         } else if (sourceType === 'search') {
-          const query = detailParams.get('q') || ''; label = `'${query}' 검색 결과`;
+          const query = detailParams.get('q') || ''; label = '검색결과 다른 글';
           ({ data:rows, error } = query ? await supabase.rpc('search_debates_page', { p_query:query, p_page:1, p_page_size:20 }) : { data:[] });
         } else if (sourceType === 'popular-daily' || sourceType === 'popular-weekly') {
-          const daily = sourceType === 'popular-daily'; label = daily ? '일간 인기 토론' : '주간 인기 토론';
+          const daily = sourceType === 'popular-daily'; label = daily ? '일간 인기 토론 다른 글' : '주간 인기 토론 다른 글';
           ({ data:rows, error } = await supabase.rpc('popular_debates', { p_hours:daily ? 24 : 168 }));
         } else return;
         const sourceRows = (rows || []).slice(0, 10);
