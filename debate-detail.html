@@ -73,6 +73,7 @@
       const debateCommentsBox = document.getElementById('debate-comments'); const debateCommentForm = document.getElementById('debate-comment-form'); const debateCommentInput = document.getElementById('debate-comment-body'); const voteLeft = document.getElementById('vote-left'); const voteRight = document.getElementById('vote-right'); const voteNotice = document.getElementById('vote-notice'); const voteResult = document.getElementById('vote-result'); const reportButton = document.getElementById('report-button'); const reportPanel = document.getElementById('report-panel'); const reportedUser = document.getElementById('reported-user'); const reportReason = document.getElementById('report-reason');
       let mySide = null, currentUser = null, activeDebate = null, messageComments = [], debateComments = [], profileNames = new Map(), likedMessages = new Set(), likedMessageComments = new Set(), likedDebateComments = new Set(), realtimeTimer = null, pendingRealtimeChanges = 0;
       const newMessageNotice = document.getElementById('new-message-notice'); const timelineUpdate = document.getElementById('timeline-update');
+      const draftStorageKey = `ondebate-comment-drafts:${debateId}`; debateCommentInput.dataset.draftKey = 'debate:main';
 
       function detailUrlForSource(id) {
         const params = new URLSearchParams(detailParams); params.set('id', id);
@@ -116,18 +117,26 @@
       const timeText = value => new Date(value).toLocaleString('ko-KR', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
       const thumbMarkup = count => `<svg class="reaction-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"></path></svg><span>${count}</span>`;
 
-      async function sendComment(type, body, targetId, parentId = null) {
+      function savedDrafts() { try { return JSON.parse(sessionStorage.getItem(draftStorageKey) || '{}'); } catch (_) { return {}; } }
+      function saveDraft(input) { const drafts = savedDrafts(); if (input.value.trim()) drafts[input.dataset.draftKey] = input.value; else delete drafts[input.dataset.draftKey]; sessionStorage.setItem(draftStorageKey, JSON.stringify(drafts)); }
+      function clearDraft(key) { const drafts = savedDrafts(); delete drafts[key]; sessionStorage.setItem(draftStorageKey, JSON.stringify(drafts)); }
+      function restoreCommentDrafts() { const drafts = savedDrafts(); document.querySelectorAll('input[data-draft-key]').forEach(input => { const value = drafts[input.dataset.draftKey]; if (!value) return; input.value = value; const form = input.closest('form'); if (form) form.hidden = false; input.closest('.inline-replies')?.classList.add('open'); }); }
+      function hasActiveCommentDraft() { const active = document.activeElement; return Boolean(active?.matches('input[data-draft-key]')) || [...document.querySelectorAll('input[data-draft-key]')].some(input => input.value.trim()); }
+      document.addEventListener('input', event => { if (event.target.matches('input[data-draft-key]')) saveDraft(event.target); });
+
+      async function sendComment(type, body, targetId, parentId = null, draftKey = null) {
         if (!currentUser) { location.href = `login.html?next=${encodeURIComponent(location.pathname + location.search)}`; return; }
         const rpc = type === 'message' ? 'add_message_comment' : 'add_debate_comment';
         const args = type === 'message' ? { p_message_id:targetId, p_body:body } : { p_debate_id:targetId, p_body:body };
         if (parentId) args.p_parent_id = parentId;
         const viaFunction = await supabase.rpc(rpc, args);
-        if (!viaFunction.error) { location.reload(); return; }
+        if (!viaFunction.error) { if (draftKey) clearDraft(draftKey); location.reload(); return; }
         const table = type === 'message' ? 'message_comments' : 'debate_comments';
         const row = type === 'message' ? { message_id:targetId, author_id:currentUser.id, body } : { debate_id:targetId, author_id:currentUser.id, body };
         if (parentId) row.parent_id = parentId;
         const { error } = await supabase.from(table).insert(row);
         if (error) { alert(`댓글을 저장하지 못했습니다. ${error.message}`); return; }
+        if (draftKey) clearDraft(draftKey);
         location.reload();
       }
       async function toggleHeart(type, id) {
@@ -151,8 +160,8 @@
       async function toggleMessageHeart(id) { if (!currentUser) { location.href = `login.html?next=${encodeURIComponent(location.pathname + location.search)}`; return; } const { error } = await supabase.rpc('toggle_message_like', { p_message_id:id }); if (error) { alert(error.message); return; } location.reload(); }
       function commentForm(targetId, type, parentId = null) {
         if (!currentUser) { const text = document.createElement('p'); text.className = 'login-comment'; text.textContent = '로그인 후 댓글을 남길 수 있습니다.'; return text; }
-        const form = document.createElement('form'); form.className = 'reply-form'; const input = document.createElement('input'); input.maxLength = 1000; input.placeholder = parentId ? '답글을 남겨주세요' : '댓글을 남겨주세요'; const button = document.createElement('button'); button.type = 'submit'; button.textContent = '등록'; form.append(input, button);
-        form.addEventListener('submit', event => { event.preventDefault(); const body = input.value.trim(); if (body) sendComment(type, body, targetId, parentId); }); return form;
+        const form = document.createElement('form'); form.className = 'reply-form'; const input = document.createElement('input'); input.maxLength = 1000; input.dataset.draftKey = `${type}:${targetId}:${parentId || 'root'}`; input.placeholder = parentId ? '답글을 남겨주세요' : '댓글을 남겨주세요'; const button = document.createElement('button'); button.type = 'submit'; button.textContent = '등록'; form.append(input, button);
+        form.addEventListener('submit', event => { event.preventDefault(); const body = input.value.trim(); if (body) sendComment(type, body, targetId, parentId, input.dataset.draftKey); }); return form;
       }
       function commentNode(comment, children, type, allowNew = true) {
         const item = document.createElement('div'); const deleted = comment.body === '삭제된 댓글입니다.'; item.className = `${type === 'message' ? 'reply' : 'comment'}${comment.parent_id ? ' nested-comment' : ''}${deleted ? ' deleted-comment' : ''}`;
@@ -208,7 +217,7 @@
         const { data: profiles } = authorIds.length ? await supabase.rpc('get_public_profiles', { p_ids:authorIds }) : { data:[] };
         profileNames = new Map((profiles || []).map(profile => [profile.id, profile]));
         if (currentUser) { const myProfile = await getProfile().catch(() => null); if (myProfile?.nickname) profileNames.set(currentUser.id, myProfile); }
-        renderMessages(messages, updatedDebate.creator_id);
+        renderMessages(messages, updatedDebate.creator_id); restoreCommentDrafts();
         pendingRealtimeChanges = 0; showPendingRealtimeChanges();
         if (moveToLatest) requestAnimationFrame(() => {
           const target = focusAuthorId ? [...timeline.children].reverse().find(row => row.dataset.authorId === focusAuthorId) : timeline.lastElementChild;
@@ -218,7 +227,7 @@
       function handleRealtimeMessageChange(payload) {
         window.clearTimeout(realtimeTimer);
         realtimeTimer = window.setTimeout(() => {
-          if (isNearTimelineEnd()) refreshMessagesFromRealtime(true);
+          if (!hasActiveCommentDraft() && isNearTimelineEnd()) refreshMessagesFromRealtime(true);
           else { pendingRealtimeChanges += 1; showPendingRealtimeChanges(); }
         }, 180);
       }
@@ -238,13 +247,13 @@
           const { data: views } = await supabase.rpc('record_debate_view', { p_debate_id: debateId, p_viewer_key:viewerKey }); try { await supabase.rpc('settle_debate_points', { p_debate_id:debateId }); } catch (_) { /* point migration may not be installed yet */ } document.getElementById('view-count').textContent = `조회 ${views ?? debate.view_count ?? 0}`;
           const messages = (debate.debate_messages || []).sort((a,b) => new Date(a.created_at) - new Date(b.created_at)); const messageIds = messages.map(message => message.id);
           const [messageResult, debateResult, messageLikes, messageCommentLikes, debateLikes, votesResult] = await Promise.all([loadMessageComments(messageIds), loadDebateComments(), user ? supabase.from('message_likes').select('message_id').eq('user_id', user.id) : Promise.resolve({ data:[] }), user ? supabase.from('message_comment_likes').select('comment_id').eq('user_id', user.id) : Promise.resolve({ data:[] }), user ? supabase.from('debate_comment_likes').select('comment_id').eq('user_id', user.id) : Promise.resolve({ data:[] }), supabase.rpc('get_debate_vote_summary', { p_debate_id:debateId })]);
-          messageComments = messageResult.data || []; debateComments = debateResult.data || []; const authorIds = [...new Set([...messages, ...messageComments, ...debateComments].map(entry => entry.author_id).filter(Boolean))]; const { data: profiles } = authorIds.length ? await supabase.rpc('get_public_profiles', { p_ids:authorIds }) : { data:[] }; profileNames = new Map((profiles || []).map(profile => [profile.id, profile])); if (user) { const myProfile = await getProfile().catch(() => null); if (myProfile?.nickname) profileNames.set(user.id, myProfile); } reportedUser.replaceChildren(); [debate.creator_id, debate.opponent_id].filter(Boolean).forEach(id => { const option = document.createElement('option'); option.value = id; option.textContent = identityText({ author_id:id }); reportedUser.append(option); }); likedMessages = new Set((messageLikes.data || []).map(row => row.message_id)); likedMessageComments = new Set((messageCommentLikes.data || []).map(row => row.comment_id)); likedDebateComments = new Set((debateLikes.data || []).map(row => row.comment_id)); renderMessages(messages, debate.creator_id); renderDebateComments(); await renderSourceList(); subscribeToRealtimeMessages();
+          messageComments = messageResult.data || []; debateComments = debateResult.data || []; const authorIds = [...new Set([...messages, ...messageComments, ...debateComments].map(entry => entry.author_id).filter(Boolean))]; const { data: profiles } = authorIds.length ? await supabase.rpc('get_public_profiles', { p_ids:authorIds }) : { data:[] }; profileNames = new Map((profiles || []).map(profile => [profile.id, profile])); if (user) { const myProfile = await getProfile().catch(() => null); if (myProfile?.nickname) profileNames.set(user.id, myProfile); } reportedUser.replaceChildren(); [debate.creator_id, debate.opponent_id].filter(Boolean).forEach(id => { const option = document.createElement('option'); option.value = id; option.textContent = identityText({ author_id:id }); reportedUser.append(option); }); likedMessages = new Set((messageLikes.data || []).map(row => row.message_id)); likedMessageComments = new Set((messageCommentLikes.data || []).map(row => row.comment_id)); likedDebateComments = new Set((debateLikes.data || []).map(row => row.comment_id)); renderMessages(messages, debate.creator_id); renderDebateComments(); restoreCommentDrafts(); await renderSourceList(); subscribeToRealtimeMessages();
           const voteSummary = votesResult.data?.[0] || {}; const leftVotes = Number(voteSummary.left_votes || 0); const rightVotes = Number(voteSummary.right_votes || 0); const totalVotes = Number(voteSummary.total_votes || 0); document.querySelector('.vote-count').textContent = `관전자 투표 ${totalVotes}`; voteLeft.querySelector('span').textContent = `현재 ${leftVotes}표`; voteRight.querySelector('span').textContent = `현재 ${rightVotes}표`; const myVote = user && voteSummary.my_chosen_side; if (myVote) { voteNotice.textContent = '이미 투표하셨습니다.'; voteLeft.disabled = true; voteRight.disabled = true; } else if (ended) { voteNotice.textContent = '종료된 토론입니다.'; voteLeft.disabled = true; voteRight.disabled = true; } if (ended) { const leftRate = totalVotes ? Math.round(leftVotes / totalVotes * 100) : 0; const rightRate = totalVotes ? 100 - leftRate : 0; document.getElementById('left-rate').textContent = `왼쪽 ${leftRate}%`; document.getElementById('right-rate').textContent = `오른쪽 ${rightRate}%`; document.getElementById('left-bar').style.width = `${leftRate}%`; document.getElementById('right-bar').style.width = `${rightRate}%`; voteResult.hidden = false; if (leftVotes > rightVotes) { voteLeft.classList.add('is-winner'); voteLeft.querySelector('b').insertAdjacentHTML('beforeend', '<em class="winner-badge">승리</em>'); } else if (rightVotes > leftVotes) { voteRight.classList.add('is-winner'); voteRight.querySelector('b').insertAdjacentHTML('beforeend', '<em class="winner-badge">승리</em>'); } }
           const isOpen = remain > 0 && debate.status !== 'ended' && debate.status !== 'hidden'; if (user && isOpen) { if (user.id === debate.creator_id) { mySide = 'left'; messageFormTitle.textContent = '내 주장 이어서 남기기'; messageFormDescription.textContent = '토론이 끝나기 전까지 언제든 발언을 추가할 수 있습니다.'; } else if (user.id === debate.opponent_id) { mySide = 'right'; messageFormTitle.textContent = '내 반박 이어서 남기기'; messageFormDescription.textContent = '토론이 끝나기 전까지 언제든 발언을 추가할 수 있습니다.'; } else if (!debate.opponent_id) { mySide = 'right'; messageFormTitle.textContent = '첫 반박 남기고 토론 참여하기'; messageFormDescription.textContent = '첫 반박을 등록하면 이 토론의 반대 측 참가자로 정해집니다.'; } if (mySide) messageForm.hidden = false; }
         } else { document.getElementById('topic-title').textContent = '토론을 찾을 수 없습니다.'; document.getElementById('debate-state').textContent = '불러오기 실패'; timeline.textContent = '존재하지 않거나 숨김 처리된 토론입니다.'; }
       }
       messageForm.addEventListener('submit', async event => { event.preventDefault(); const body = messageBody.value.trim(); if (!debateId || !mySide || !body) return; messageSubmit.disabled = true; messageSubmit.textContent = '등록 중…'; messageNotice.textContent = ''; const { error } = await supabase.rpc('post_debate_message', { p_debate_id:debateId, p_body:body }); if (error) { messageNotice.textContent = error.message; messageSubmit.disabled = false; messageSubmit.textContent = '발언 등록'; return; } messageBody.value = ''; try { await refreshMessagesFromRealtime(true, currentUser?.id); } finally { messageSubmit.disabled = false; messageSubmit.textContent = '발언 등록'; } });
-      debateCommentForm.addEventListener('submit', event => { event.preventDefault(); const body = debateCommentInput.value.trim(); if (body) sendComment('debate', body, debateId); });
+      debateCommentForm.addEventListener('submit', event => { event.preventDefault(); const body = debateCommentInput.value.trim(); if (body) sendComment('debate', body, debateId, null, debateCommentInput.dataset.draftKey); });
       async function castVote(side) { if (!currentUser) { location.href = `login.html?next=${encodeURIComponent(location.pathname + location.search)}`; return; } const { error } = await supabase.rpc('cast_debate_vote', { p_debate_id:debateId, p_chosen_side:side }); if (error) { alert(error.message); return; } location.reload(); }
       voteLeft.addEventListener('click', () => castVote('left')); voteRight.addEventListener('click', () => castVote('right'));
       reportButton.addEventListener('click', () => { if (!currentUser) { location.href = `login.html?next=${encodeURIComponent(location.pathname + location.search)}`; return; } if (!reportedUser.options.length) { alert('신고 대상을 불러오지 못했습니다.'); return; } reportPanel.hidden = !reportPanel.hidden; if (!reportPanel.hidden) reportReason.focus(); });
