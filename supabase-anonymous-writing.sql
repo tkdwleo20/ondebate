@@ -37,7 +37,7 @@ begin
   where debate_id = p_debate_id and user_id = p_user_id;
   if v_code is not null then return v_code; end if;
   loop
-    v_code := upper(substr(replace(replace(replace(encode(gen_random_bytes(8), 'base64'), '/', ''), '+', ''), '=', ''), 1, 6));
+    v_code := upper(substr(md5(random()::text || clock_timestamp()::text || p_user_id::text), 1, 6));
     begin
       insert into public.debate_anonymous_identities(debate_id, user_id, anonymous_code)
       values (p_debate_id, p_user_id, v_code);
@@ -305,6 +305,14 @@ begin
 end;
 $$;
 
+create or replace function public.admin_complete_report(p_report_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_admin() then raise exception '관리자 권한이 필요합니다.'; end if;
+  update public.reports set status = 'reviewed' where id = p_report_id;
+end;
+$$;
+
 -- Privileges: do not leave SECURITY DEFINER endpoints callable by PUBLIC.
 revoke all on function public.anonymous_code_for(uuid, uuid) from public, anon, authenticated;
 revoke all on function public.assert_anonymous_write_allowed(uuid) from public, anon, authenticated;
@@ -325,4 +333,5 @@ grant execute on function public.get_debate_message_comments(uuid) to anon, auth
 grant execute on function public.get_debate_comments(uuid) to anon, authenticated;
 grant execute on function public.submit_debate_report(uuid, text, text) to authenticated;
 grant execute on function public.admin_restrict_anonymous_subject(uuid, integer) to authenticated;
+grant execute on function public.admin_complete_report(uuid) to authenticated;
 
