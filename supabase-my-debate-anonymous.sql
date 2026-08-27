@@ -1,6 +1,8 @@
 -- Show the current user's anonymous/public setting in their own debate list.
 -- This exposes no other participant identity information.
 
+drop function if exists public.my_debates_page(integer, integer);
+
 create or replace function public.my_debates_page(
   p_page integer default 1,
   p_page_size integer default 5
