@@ -128,8 +128,7 @@
       async function sendComment(type, body, targetId, parentId = null, draftKey = null, isAnonymous = false) {
         if (!currentUser) { location.href = `login.html?next=${encodeURIComponent(location.pathname + location.search)}`; return; }
         const rpc = type === 'message' ? 'add_message_comment' : 'add_debate_comment';
-        const args = type === 'message' ? { p_message_id:targetId, p_body:body, p_is_anonymous:isAnonymous } : { p_debate_id:targetId, p_body:body, p_is_anonymous:isAnonymous };
-        if (parentId) args.p_parent_id = parentId;
+        const args = type === 'message' ? { p_message_id:targetId, p_body:body, p_parent_id:parentId, p_is_anonymous:isAnonymous } : { p_debate_id:targetId, p_body:body, p_parent_id:parentId, p_is_anonymous:isAnonymous };
         const viaFunction = await supabase.rpc(rpc, args);
         if (viaFunction.error) { alert(`댓글을 저장하지 못했습니다. ${viaFunction.error.message}`); return; }
         if (draftKey) clearDraft(draftKey);
