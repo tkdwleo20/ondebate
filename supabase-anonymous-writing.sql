@@ -62,7 +62,8 @@ $$;
 
 -- First statement fixes each debater's identity mode for the whole debate.
 drop function if exists public.create_debate(text, text, smallint, text);
-create function public.create_debate(
+drop function if exists public.create_debate(text, text, smallint, text, boolean);
+create or replace function public.create_debate(
   p_title text, p_category text, p_duration_hours smallint, p_opening text, p_is_anonymous boolean
 )
 returns uuid language plpgsql security definer set search_path = public as $$
@@ -85,7 +86,8 @@ end;
 $$;
 
 drop function if exists public.post_debate_message(uuid, text);
-create function public.post_debate_message(p_debate_id uuid, p_body text, p_is_anonymous boolean default false)
+drop function if exists public.post_debate_message(uuid, text, boolean);
+create or replace function public.post_debate_message(p_debate_id uuid, p_body text, p_is_anonymous boolean)
 returns uuid language plpgsql security definer set search_path = public as $$
 declare v_user_id uuid := auth.uid(); v_debate public.debates%rowtype; v_side text; v_anonymous boolean; v_code text; v_message_id uuid;
 begin
@@ -112,7 +114,8 @@ end;
 $$;
 
 drop function if exists public.add_message_comment(uuid, text, uuid);
-create function public.add_message_comment(p_message_id uuid, p_body text, p_parent_id uuid default null, p_is_anonymous boolean default false)
+drop function if exists public.add_message_comment(uuid, text, uuid, boolean);
+create or replace function public.add_message_comment(p_message_id uuid, p_body text, p_parent_id uuid, p_is_anonymous boolean)
 returns uuid language plpgsql security definer set search_path = public as $$
 declare v_id uuid; v_user_id uuid := auth.uid(); v_parent_message uuid; v_debate_id uuid; v_code text;
 begin
@@ -129,7 +132,8 @@ end;
 $$;
 
 drop function if exists public.add_debate_comment(uuid, text, uuid);
-create function public.add_debate_comment(p_debate_id uuid, p_body text, p_parent_id uuid default null, p_is_anonymous boolean default false)
+drop function if exists public.add_debate_comment(uuid, text, uuid, boolean);
+create or replace function public.add_debate_comment(p_debate_id uuid, p_body text, p_parent_id uuid, p_is_anonymous boolean)
 returns uuid language plpgsql security definer set search_path = public as $$
 declare v_id uuid; v_user_id uuid := auth.uid(); v_parent_debate uuid; v_code text;
 begin
@@ -217,7 +221,7 @@ drop policy if exists "Debate comments are readable" on public.debate_comments;
 
 -- Report a participant by side, never by user UUID.
 drop function if exists public.submit_debate_report(uuid, text, uuid);
-create function public.submit_debate_report(p_debate_id uuid, p_reason text, p_target_side text)
+create or replace function public.submit_debate_report(p_debate_id uuid, p_reason text, p_target_side text)
 returns uuid language plpgsql security definer set search_path = public as $$
 declare v_id uuid; v_user_id uuid := auth.uid(); v_target_id uuid; v_reporter_code text;
 begin
