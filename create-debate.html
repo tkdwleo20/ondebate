@@ -14,7 +14,7 @@
       main { width:min(860px,calc(100% - 36px)); margin:24px auto 70px; }
       .form-card { background:#fff; border:1px solid var(--line); } .field { padding:21px 22px; border-bottom:1px solid var(--line); } .field:last-of-type { border-bottom:0; } label { display:block; font-weight:700; font-size:14px; margin-bottom:9px; } .required { color:var(--red); margin-left:3px; } .hint { margin:0 0 10px; color:#888; font-size:12px; line-height:1.55; }
       input[type="text"], select, textarea { display:block; width:100%; border:1px solid #d7d7d7; border-radius:2px; color:#222; padding:10px 11px; outline:none; font-size:14px; } input[type="text"] { height:42px; } textarea { min-height:180px; resize:vertical; line-height:1.7; } input:focus, select:focus, textarea:focus { border-color:#555; } select { height:42px; background:#fff; }
-      .time-row { display:flex; align-items:center; gap:11px; } .time-row input { width:96px; height:42px; border:1px solid #d7d7d7; padding:0 10px; } .time-row span { font-size:13px; } .time-preview { margin-top:9px; color:#777; font-size:12px; } .agreement { background:#fafafa; border-top:1px solid var(--line); padding:15px 22px; color:#666; font-size:12px; line-height:1.6; }
+      .time-row { display:flex; align-items:center; gap:11px; } .time-row input { width:96px; height:42px; border:1px solid #d7d7d7; padding:0 10px; } .time-row span { font-size:13px; } .time-preview { margin-top:9px; color:#777; font-size:12px; } .anonymous-option { display:flex; align-items:center; gap:6px; width:max-content; margin-top:11px; color:#666; font-size:12px; cursor:pointer; } .anonymous-option input { width:14px; height:14px; margin:0; accent-color:#555; } .agreement { background:#fafafa; border-top:1px solid var(--line); padding:15px 22px; color:#666; font-size:12px; line-height:1.6; }
       .actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; } .cancel, .submit { height:42px; padding:0 17px; font-size:13px; cursor:pointer; } .cancel { border:1px solid #cfcfcf; background:#fff; color:#555; } .submit { border:1px solid #333; background:#333; color:#fff; font-weight:600; } .submit:disabled { background:#888; border-color:#888; cursor:wait; } .success { display:none; margin-top:15px; padding:13px 15px; background:#eef7ee; border:1px solid #cbe2cc; color:#39623c; font-size:13px; } .success.show { display:block; } .success.error { background:#fff2f0; border-color:#efb9b0; color:#b53e31; }
       .mobile-nav { display:none; } @media(max-width:650px) { header { height:58px; padding:0 14px; gap:0; } .brand { font-size:19px; } nav { margin-left:17px; gap:16px; } nav a { font-size:12px; text-align:center; line-height:1.15; } .desktop-nav { display:none; } .mobile-nav { display:inline; } #auth-area { margin-left:auto; min-width:0; } #auth-area .account-link { max-width:62px; overflow:hidden; text-overflow:ellipsis; font-size:12px; font-weight:800; } #auth-area .logout-button { display:none; } main { margin-top:24px; } .field { padding:18px 15px; } .time-row { flex-wrap:wrap; } .time-preview { width:100%; margin-left:0; } }
     </style>
@@ -26,7 +26,7 @@
         <div class="field"><input id="title" type="text" maxlength="100" required placeholder="제목을 입력해주세요" aria-label="토론 주제" /></div>
         <div class="field"><label for="category">카테고리<span class="required">*</span></label><select id="category" required><option value="" selected disabled>카테고리를 선택하세요</option><option>일상</option><option>사회 · 정치</option><option>연애</option><option>문화 · 취미</option><option>게임 · 스포츠</option><option>학교 · 직장</option></select></div>
         <div class="field"><label for="duration">토론 시간<span class="required">*</span></label><p class="hint">토론은 시작 후 정해진 시간에 자동 종료됩니다. 1시간에서 24시간 사이로 설정해 주세요.</p><div class="time-row"><input id="duration" type="number" min="1" max="24" value="12" required /><span>시간</span></div><div class="time-preview">종료 예정: <b id="end-time">계산 중</b></div></div>
-        <div class="field"><label for="opening">첫 발언<span class="required">*</span></label><textarea id="opening" required maxlength="3000" placeholder="본인의 주장을 적어주세요"></textarea></div>
+        <div class="field"><label for="opening">첫 발언<span class="required">*</span></label><textarea id="opening" required maxlength="3000" placeholder="본인의 주장을 적어주세요"></textarea><label class="anonymous-option"><input id="opening-anonymous" type="checkbox" />익명으로 발언하기</label></div>
         <div class="agreement">등록 후에는 토론 시간을 변경할 수 없습니다. 욕설, 혐오 표현, 개인정보 노출 등 운영 원칙에 어긋나는 내용은 신고 및 삭제될 수 있습니다.</div>
       </form>
       <div class="actions"><a class="cancel" href="index.html" style="text-decoration:none;display:grid;place-items:center">취소</a><button class="submit" form="debate-form" type="submit">토론 시작하기</button></div>
@@ -40,14 +40,14 @@
       duration.addEventListener('input', updateEndTime); updateEndTime();
       document.getElementById('debate-form').addEventListener('submit', async event => {
         event.preventDefault(); const submitButton = document.querySelector('.submit'); const notice = document.getElementById('success');
-        const debate = { title: document.getElementById('title').value.trim(), category: document.getElementById('category').value, duration: Number(duration.value), opening: document.getElementById('opening').value.trim() };
+        const debate = { title: document.getElementById('title').value.trim(), category: document.getElementById('category').value, duration: Number(duration.value), opening: document.getElementById('opening').value.trim(), isAnonymous: document.getElementById('opening-anonymous').checked };
         if (!debate.title || !debate.category || !debate.opening) return;
         submitButton.disabled = true; submitButton.textContent = '저장 중…'; notice.classList.remove('error');
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { location.href = 'login.html?next=create-debate.html'; return; }
         try {
           if (!await getProfile()) { location.href = 'nickname.html?next=create-debate.html'; return; }
-          const { data: debateId, error } = await supabase.rpc('create_debate', { p_title: debate.title, p_category: debate.category, p_duration_hours: debate.duration, p_opening: debate.opening });
+          const { data: debateId, error } = await supabase.rpc('create_debate', { p_title: debate.title, p_category: debate.category, p_duration_hours: debate.duration, p_opening: debate.opening, p_is_anonymous: debate.isAnonymous });
           if (error) throw error;
           notice.textContent = '토론을 만들었습니다. 상세 화면으로 이동합니다.';
           notice.classList.add('show');
