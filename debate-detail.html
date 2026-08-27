@@ -188,7 +188,7 @@
         timelineUpdate.hidden = false;
       }
       function isNearTimelineEnd() { return timeline.getBoundingClientRect().bottom <= window.innerHeight + 140; }
-      async function refreshMessagesFromRealtime(moveToLatest = false, focusMine = false) {
+      async function refreshMessagesFromRealtime(moveToLatest = false, scrollToComposer = false) {
         const { data: updatedDebate } = await loadDebate();
         if (!updatedDebate || !activeDebate) return;
         activeDebate = updatedDebate;
@@ -202,8 +202,8 @@
         renderMessages(messages); restoreCommentDrafts();
         pendingRealtimeChanges = 0; showPendingRealtimeChanges();
         if (moveToLatest) requestAnimationFrame(() => {
-          const target = focusMine ? [...timeline.children].reverse().find(row => row.dataset.isMine === 'true') : timeline.lastElementChild;
-          target?.scrollIntoView({ behavior:'smooth', block:'end' });
+          const target = scrollToComposer ? messageForm : timeline.lastElementChild;
+          target?.scrollIntoView({ behavior:'smooth', block:'center' });
         });
       }
       function handleRealtimeMessageChange(payload) {
