@@ -17,7 +17,7 @@
     <header><a class="brand" href="index.html">On<i>Debate</i></a></header>
     <main><section class="card"><h1>OnDebate 로그인</h1><p>로그인 후 토론을 시작하고<br />댓글과 투표에 참여할 수 있습니다.</p><form class="email-form" id="email-login-form"><input id="email" type="email" autocomplete="email" required placeholder="이메일" /><input id="password" type="password" autocomplete="current-password" required placeholder="비밀번호" /><div class="login-options"><label><input id="save-email" type="checkbox" />아이디 저장</label><label><input id="auto-login" type="checkbox" checked />자동 로그인</label></div><button type="submit">이메일로 로그인</button></form><span class="signup-link">이메일 계정이 없나요? <a id="signup-link" href="signup.html">회원가입</a></span><div class="divider">또는</div><button class="login google" id="google">Google로 계속하기</button><button class="login kakao" id="kakao">카카오로 계속하기</button><div class="status" id="status"></div><div class="fine">로그인하면 OnDebate의 운영 원칙에 동의하게 됩니다.</div></section></main>
     <script type="module">
-      import { supabase } from './supabase.js';
+      import { supabase, signInWithEmailPassword } from './supabase.js';
       const { data: { user } } = await supabase.auth.getUser();
       if (user) location.href = new URLSearchParams(location.search).get('next') || 'index.html';
       const status = document.getElementById('status');
@@ -36,12 +36,10 @@
         event.preventDefault(); const button = event.currentTarget.querySelector('button'); const next = new URLSearchParams(location.search).get('next') || 'index.html';
         button.disabled = true; button.textContent = '로그인 중…'; status.classList.remove('show');
         const email = emailInput.value.trim();
-        const { error } = await supabase.auth.signInWithPassword({ email, password: document.getElementById('password').value });
+        const { error } = await signInWithEmailPassword(email, document.getElementById('password').value, autoLogin.checked);
         if (error) { status.textContent = '이메일 또는 비밀번호를 확인해 주세요.'; status.classList.add('show'); button.disabled = false; button.textContent = '이메일로 로그인'; return; }
         if (saveEmail.checked) localStorage.setItem('ondebate-saved-email', email); else localStorage.removeItem('ondebate-saved-email');
         localStorage.setItem('ondebate-auto-login', String(autoLogin.checked));
-        if (autoLogin.checked) sessionStorage.removeItem('ondebate-temporary-auth');
-        else { const { data: { session } } = await supabase.auth.getSession(); if (session) { sessionStorage.setItem('ondebate-temporary-auth', JSON.stringify(session)); localStorage.removeItem('sb-sczgelfdrlkenlshthsa-auth-token'); } }
         location.href = next;
       });
       document.getElementById('kakao').addEventListener('click', async event => {
