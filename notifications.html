@@ -13,7 +13,7 @@
 </head>
 <body>
   <header>
-    <a class="brand" href="index.html">On<i>Debate</i></a>
+    <a class="brand" style="visibility:hidden" href="index.html">On<i>Debate</i></a>
     <nav><a href="index.html#popular">인기 토론</a><a href="index.html#categories">카테고리</a></nav>
     <a class="start" href="login.html?next=create-debate.html">토론 시작하기</a>
     <span id="auth-area"></span>
@@ -23,7 +23,7 @@
     <section class="section" id="notifications"><p class="empty">알림을 불러오는 중입니다.</p></section>
   </main>
   <script type="module">
-    import { supabase, mountAuthState } from './supabase.js?v=brand-logo-3';
+    import { supabase, mountAuthState } from './supabase.js?v=brand-logo-4';
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
