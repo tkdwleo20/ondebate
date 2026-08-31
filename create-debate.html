@@ -33,7 +33,7 @@
       <div class="success" id="success">토론을 만들었습니다. 상세 화면으로 이동합니다.</div>
     </main>
     <script type="module">
-      import { supabase, getProfile, mountAuthState } from './supabase.js?v=auth-resilience-1';
+      import { supabase, getProfile, mountAuthState } from './supabase.js?v=auth-resilience-2';
       mountAuthState('auth-area');
       const duration = document.getElementById('duration'); const endTime = document.getElementById('end-time');
       function updateEndTime() { const hours = Number(duration.value); if (!duration.value || !Number.isInteger(hours) || hours < 1 || hours > 240) { endTime.textContent = '시간을 입력해 주세요'; return; } const date = new Date(Date.now() + hours * 60 * 60 * 1000); endTime.textContent = date.toLocaleString('ko-KR', { month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' }); }
