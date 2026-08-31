@@ -19,9 +19,9 @@
         event.preventDefault(); const email = document.getElementById('email').value.trim(); const password = document.getElementById('password').value; const confirm = document.getElementById('password-confirm').value; const button = form.querySelector('button');
         if (password !== confirm) { message.textContent = '비밀번호가 서로 다릅니다.'; message.className = 'message show error'; return; }
         button.disabled = true; button.textContent = '보내는 중…'; message.className = 'message';
-        const { error } = await supabase.auth.signUp({ email, password });
+        const next = new URLSearchParams(location.search).get('next') || 'index.html'; const { error } = await supabase.auth.signUp({ email, password });
         if (error) { message.textContent = error.message; message.className = 'message show error'; button.disabled = false; button.textContent = '인증 코드 보내기'; return; }
-        location.href = `verify-email.html?email=${encodeURIComponent(email)}`;
+        location.href = `verify-email.html?email=${encodeURIComponent(email)}&next=${encodeURIComponent(next)}`;
       });
     </script>
   </body>
