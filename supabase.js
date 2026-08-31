@@ -22,10 +22,23 @@ function mountSiteFooter() {
     style.textContent = '.site-footer{margin-top:auto;border-top:1px solid #e5e5e5;background:#fff;color:#858585;font:12px/1.7 "Noto Sans KR",sans-serif}.site-footer__inner{width:min(1120px,calc(100% - 48px));margin:0 auto;padding:18px 0 22px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}.site-footer__logo{display:inline-flex;align-items:center;width:108px;height:38px;text-decoration:none}.site-footer__logo svg{display:block;width:100%;height:100%}.site-footer nav{display:flex;gap:18px;height:auto}.site-footer nav a{color:#555;text-decoration:none;font-size:13px;font-weight:600;letter-spacing:-.25px}.site-footer nav a:hover{text-decoration:underline}.site-footer__contact{margin-left:auto}.site-footer__contact a{color:#666;text-decoration:none}.site-footer__business{color:#aaa}@media(max-width:650px){.site-footer__inner{width:calc(100% - 48px);padding:14px 0 18px;gap:7px 18px}.site-footer__logo{width:96px;height:35px}.site-footer__contact,.site-footer__business{width:100%;margin-left:0}}';
     document.head.append(style);
   }
-  if (document.querySelector('.site-footer')) return;
+  // Some older pages still load footer.js. Replace that legacy footer so every
+  // screen uses the same structure and styling as the home page.
+  document.querySelector('.site-footer')?.remove();
   const footer = document.createElement('footer');
   footer.className = 'site-footer';
   footer.innerHTML = '<div class="site-footer__inner"><a class="site-footer__logo" href="index.html" aria-label="OnDebate 홈"><img class="site-footer__logo-image" alt="OnDebate" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNjAgMTAwIj48cmVjdCB3aWR0aD0iMzYwIiBoZWlnaHQ9IjEwMCIgcng9IjEwIiBmaWxsPSIjZmZmIi8+PHRleHQgeD0iMTgwIiB5PSI2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjU0IiBmb250LXdlaWdodD0iNzAwIiBsZXR0ZXItc3BhY2luZz0iLTQiPjx0c3BhbiBmaWxsPSIjMjIyIj5PbjwvdHNwYW4+PHRzcGFuIGZpbGw9IiNlNjRiM2MiPkRlYmF0ZTwvdHNwYW4+PC90ZXh0Pjwvc3ZnPg==" /></a><nav aria-label="정책 안내"><a href="terms.html">이용약관</a><a href="privacy.html">개인정보처리방침</a></nav><span class="site-footer__contact">문의 <a href="mailto:support@ondebate.co.kr">support@ondebate.co.kr</a></span><span class="site-footer__business">사업자 정보는 추후 업데이트됩니다.</span></div>';
+  footer.style.cssText = 'margin-top:auto;border-top:1px solid #e5e5e5;background:#fff;color:#858585;font:12px/1.7 "Noto Sans KR",sans-serif';
+  const footerInner = footer.querySelector('.site-footer__inner');
+  footerInner.style.cssText = 'width:min(1120px,calc(100% - 48px));margin:0 auto;padding:18px 0 22px;display:flex;align-items:center;gap:20px;flex-wrap:wrap';
+  const footerLogo = footer.querySelector('.site-footer__logo');
+  footerLogo.style.cssText = 'display:inline-flex;align-items:center;width:108px;height:38px;text-decoration:none;flex:none';
+  footer.querySelector('.site-footer__logo-image').style.cssText = 'display:block;width:100%;height:100%;object-fit:contain';
+  const footerNav = footer.querySelector('nav'); footerNav.style.cssText = 'display:flex;align-items:center;gap:18px;height:auto';
+  footerNav.querySelectorAll('a').forEach(link => link.style.cssText = 'color:#555;text-decoration:none;font-size:13px;font-weight:600;letter-spacing:-.25px');
+  footer.querySelector('.site-footer__contact').style.marginLeft = 'auto';
+  footer.querySelector('.site-footer__contact a').style.cssText = 'color:#666;text-decoration:none';
+  footer.querySelector('.site-footer__business').style.color = '#aaa';
   document.body.append(footer);
 }
 if (typeof document !== 'undefined') {
