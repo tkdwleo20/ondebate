@@ -14,7 +14,12 @@ function recordSiteVisit() {
       visitorKey = crypto.randomUUID();
       localStorage.setItem('ondebate_visitor_key', visitorKey);
     }
-    supabase.rpc('record_site_visit', { p_visitor_key: visitorKey }).catch(() => {});
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Seoul' }).format(new Date());
+    const recordedKey = 'ondebate_site_visit_recorded';
+    if (localStorage.getItem(recordedKey) === today) return;
+    supabase.rpc('record_site_visit', { p_visitor_key: visitorKey }).then(({ error }) => {
+      if (!error) localStorage.setItem(recordedKey, today);
+    }).catch(() => {});
   } catch (_) { /* private browsing or an older browser may block storage */ }
 }
 if (typeof window !== 'undefined') recordSiteVisit();
@@ -120,12 +125,31 @@ document.addEventListener('click', event => {
   if (!clickedLink) { event.preventDefault(); event.stopImmediatePropagation(); location.href = destination.href; }
 }, true);
 
-export async function getProfile() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data, error } = await supabase.from('profiles').select('id,nickname,points').eq('id', user.id).maybeSingle();
-  if (error) throw error;
-  return data;
+let profilePromise = null;
+const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+
+// A busy or briefly reconnecting network must not make an existing member look
+// like a new member. Confirm an absent profile across retries; surface actual
+// request failures to the caller instead of returning a misleading null.
+export async function getProfile({ refresh = false } = {}) {
+  if (!refresh && profilePromise) return profilePromise;
+  const request = (async () => {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user) return null;
+    let lastError = null;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const { data, error } = await supabase.from('profiles').select('id,nickname,points').eq('id', user.id).maybeSingle();
+      if (data) return data;
+      if (error) lastError = error;
+      if (attempt < 2) await wait(450 * (attempt + 1));
+    }
+    if (lastError) throw lastError;
+    return null;
+  })();
+  profilePromise = request;
+  try { return await request; }
+  catch (error) { if (profilePromise === request) profilePromise = null; throw error; }
 }
 
 export async function saveNickname(nickname) {
@@ -135,6 +159,7 @@ export async function saveNickname(nickname) {
   if (cleanNickname.length < 2 || cleanNickname.length > 20) throw new Error('닉네임은 2~20자로 입력해 주세요.');
   const { error } = await supabase.rpc('set_nickname', { p_nickname: cleanNickname, p_is_change: false });
   if (error) throw error;
+  profilePromise = null;
   return cleanNickname;
 }
 
@@ -145,6 +170,7 @@ export async function changeNickname(nickname) {
   if (cleanNickname.length < 2 || cleanNickname.length > 20) throw new Error('닉네임은 2~20자로 입력해 주세요.');
   const { error } = await supabase.rpc('set_nickname', { p_nickname: cleanNickname, p_is_change: true });
   if (error) throw error;
+  profilePromise = null;
   return cleanNickname;
 }
 
@@ -200,10 +226,23 @@ async function openNotificationPanel(target, userId) {
 
 export async function mountAuthState(targetId) {
   const target = document.getElementById(targetId);
-  if (!target) return;
-  const { data: { user } } = await supabase.auth.getUser();
+  if (!target || target.dataset.authMounted === 'true') return;
+  let user;
+  try { ({ data: { user } } = await supabase.auth.getUser()); }
+  catch (_) { target.style.visibility = 'visible'; return; }
   if (!user) { target.style.visibility = 'visible'; return; }
-  const profile = await getProfile();
+  let profile;
+  try { profile = await getProfile(); }
+  catch (_) {
+    target.replaceChildren();
+    const loading = document.createElement('span'); loading.className = 'account-link'; loading.textContent = '계정 확인 중…';
+    target.append(loading); target.style.visibility = 'visible';
+    if (!target.dataset.authRetryPending) {
+      target.dataset.authRetryPending = 'true';
+      window.setTimeout(() => { delete target.dataset.authRetryPending; mountAuthState(targetId); }, 2500);
+    }
+    return;
+  }
   if (!profile || /^토론자[0-9a-f]{6}$/i.test(profile.nickname)) {
     location.href = `nickname.html?next=${encodeURIComponent(location.pathname.split('/').pop() || 'index.html')}`;
     return;
@@ -212,7 +251,6 @@ export async function mountAuthState(targetId) {
   // Point features may not be installed yet. They must never prevent an
   // otherwise valid login session or the rest of a page from rendering.
   try { await supabase.rpc('daily_checkin'); } catch (_) { /* optional feature */ }
-  try { await supabase.rpc('settle_expired_debates'); } catch (_) { /* optional feature */ }
   const nickname = profile.nickname;
   ensureNotificationStyle();
   target.replaceChildren();
@@ -222,6 +260,7 @@ export async function mountAuthState(targetId) {
   const logout = document.createElement('button'); logout.className = 'logout-button'; logout.type = 'button'; logout.textContent = '로그아웃';
   const panel = document.createElement('div'); panel.className = 'notification-panel';
   target.append(account, notification, logout, panel);
+  target.dataset.authMounted = 'true';
   target.style.visibility = 'visible';
   await refreshNotificationBadge(target, user.id);
   window.setInterval(() => refreshNotificationBadge(target, user.id), 60000);
