@@ -1,6 +1,6 @@
 # Supabase 수동 백업
 
-1. Docker Desktop을 실행하고, 프로젝트 폴더에서 `npm install supabase --save-dev`를 실행합니다.
+1. Docker Desktop을 실행하고, 프로젝트 폴더에서 `npm.cmd install supabase --save-dev`를 실행합니다.
 2. Supabase Dashboard의 **Connect**에서 **Session pooler** 연결 문자열을 복사합니다.
 3. PowerShell에서 다음을 실행합니다.
 
