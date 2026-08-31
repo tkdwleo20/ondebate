@@ -8,9 +8,12 @@ $backupRoot = Join-Path $projectRoot 'backups'
 
 $globalSupabase = Get-Command supabase.cmd -ErrorAction SilentlyContinue
 $localSupabase = Test-Path (Join-Path $projectRoot 'node_modules\\.bin\\supabase.cmd')
+$nodeCommand = Get-Command node.exe -ErrorAction SilentlyContinue
+$nodeExecutable = if ($nodeCommand) { $nodeCommand.Source } else { 'C:\\Program Files\\nodejs\\node.exe' }
 if (-not $globalSupabase -and -not $localSupabase) {
   throw "Supabase CLI가 설치되어 있지 않습니다. 프로젝트 폴더에서 npm install supabase --save-dev를 실행한 뒤 다시 시도해 주세요."
 }
+if (-not (Test-Path $nodeExecutable)) { throw "Node.js 실행 파일을 찾지 못했습니다. Node.js LTS 설치 후 PowerShell을 새로 열어 주세요." }
 if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
   throw "Docker Desktop이 설치되어 있지 않거나 실행 중이 아닙니다. 실행 후 다시 시도해 주세요."
 }
@@ -39,7 +42,7 @@ New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
 
 function Invoke-SupabaseCli([string[]]$Arguments) {
   if ($globalSupabase) { & supabase.cmd @Arguments }
-  else { & npx.cmd --no-install supabase @Arguments }
+  else { & $nodeExecutable (Join-Path $projectRoot 'node_modules\\supabase\\dist\\supabase.js') @Arguments }
   if ($LASTEXITCODE -ne 0) { throw "Supabase CLI 명령이 실패했습니다. (종료 코드: $LASTEXITCODE)" }
 }
 
