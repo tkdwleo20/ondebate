@@ -11,6 +11,27 @@ if (typeof document !== 'undefined' && !document.querySelector('link[rel="icon"]
   document.head.append(icon);
 }
 
+// Use the same compact wordmark in every shared header without changing the
+// surrounding menu layout. Keeping it inline avoids a separate asset request.
+function mountBrandLogo() {
+  const brand = document.querySelector('header .brand');
+  if (!brand || brand.dataset.logoMounted) return;
+  brand.dataset.logoMounted = 'true';
+  brand.setAttribute('aria-label', 'OnDebate 홈');
+  brand.style.cssText += ';display:inline-flex;align-items:center;width:106px;height:30px;flex:none';
+  brand.innerHTML = '<svg viewBox="0 0 360 100" role="img" aria-label="OnDebate 로고" style="display:block;width:100%;height:100%"><text x="180" y="66" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="54" font-weight="700" letter-spacing="-4"><tspan fill="#222">On</tspan><tspan fill="#e64b3c">Debate</tspan></text></svg>';
+  if (!document.getElementById('brand-logo-style')) {
+    const style = document.createElement('style');
+    style.id = 'brand-logo-style';
+    style.textContent = '@media(max-width:650px){header .brand{width:90px!important;height:26px!important}}';
+    document.head.append(style);
+  }
+}
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountBrandLogo, { once:true });
+  else mountBrandLogo();
+}
+
 // Keep the legal notice available on every page that uses the shared client.
 // It is intentionally inlined here because static asset requests can be
 // rewritten to the SPA entry point by the Pages deployment.
