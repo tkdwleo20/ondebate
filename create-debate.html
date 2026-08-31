@@ -25,7 +25,7 @@
       <form id="debate-form" class="form-card">
         <div class="field"><input id="title" type="text" maxlength="100" required placeholder="제목을 입력해주세요" aria-label="토론 주제" /></div>
         <div class="field"><label for="category">카테고리<span class="required">*</span></label><select id="category" required><option value="" selected disabled>카테고리를 선택하세요</option><option>일상</option><option>사회 · 정치</option><option>연애</option><option>문화 · 취미</option><option>게임 · 스포츠</option><option>학교 · 직장</option></select></div>
-        <div class="field"><label for="duration">토론 시간<span class="required">*</span></label><p class="hint">토론은 시작 후 정해진 시간에 자동 종료됩니다. 1시간에서 24시간 사이로 설정해 주세요.</p><div class="time-row"><input id="duration" type="number" min="1" max="24" value="12" required /><span>시간</span></div><div class="time-preview">종료 예정: <b id="end-time">계산 중</b></div></div>
+        <div class="field"><label for="duration">토론 시간<span class="required">*</span></label><p class="hint">토론은 시작 후 정해진 시간에 자동 종료됩니다. 1시간에서 240시간 사이로 설정해 주세요.</p><div class="time-row"><input id="duration" type="number" min="1" max="240" value="120" required /><span>시간</span></div><div class="time-preview">종료 예정: <b id="end-time">계산 중</b></div></div>
         <div class="field"><label for="opening">첫 발언<span class="required">*</span></label><textarea id="opening" required maxlength="3000" placeholder="본인의 주장을 적어주세요"></textarea><label class="anonymous-option"><input id="opening-anonymous" type="checkbox" />익명으로 발언하기</label></div>
         <div class="agreement">등록 후에는 토론 시간을 변경할 수 없습니다. 욕설, 혐오 표현, 개인정보 노출 등 운영 원칙에 어긋나는 내용은 신고 및 삭제될 수 있습니다.</div>
       </form>
@@ -36,13 +36,13 @@
       import { supabase, getProfile, mountAuthState } from './supabase.js?v=auth-resilience-1';
       mountAuthState('auth-area');
       const duration = document.getElementById('duration'); const endTime = document.getElementById('end-time');
-      function updateEndTime() { const hours = Number(duration.value); if (!duration.value || !Number.isInteger(hours) || hours < 1 || hours > 24) { endTime.textContent = '시간을 입력해 주세요'; return; } const date = new Date(Date.now() + hours * 60 * 60 * 1000); endTime.textContent = date.toLocaleString('ko-KR', { month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' }); }
+      function updateEndTime() { const hours = Number(duration.value); if (!duration.value || !Number.isInteger(hours) || hours < 1 || hours > 240) { endTime.textContent = '시간을 입력해 주세요'; return; } const date = new Date(Date.now() + hours * 60 * 60 * 1000); endTime.textContent = date.toLocaleString('ko-KR', { month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' }); }
       duration.addEventListener('input', updateEndTime); updateEndTime();
       document.getElementById('debate-form').addEventListener('submit', async event => {
         event.preventDefault(); const submitButton = document.querySelector('.submit'); const notice = document.getElementById('success');
         const debate = { title: document.getElementById('title').value.trim(), category: document.getElementById('category').value, duration: Number(duration.value), opening: document.getElementById('opening').value.trim(), isAnonymous: document.getElementById('opening-anonymous').checked };
         if (!debate.title || !debate.category || !debate.opening) return;
-        if (!Number.isInteger(debate.duration) || debate.duration < 1 || debate.duration > 24) { notice.textContent = '토론 시간은 1시간에서 24시간 사이로 입력해 주세요.'; notice.classList.add('show', 'error'); duration.focus(); return; }
+        if (!Number.isInteger(debate.duration) || debate.duration < 1 || debate.duration > 240) { notice.textContent = '토론 시간은 1시간에서 240시간 사이로 입력해 주세요.'; notice.classList.add('show', 'error'); duration.focus(); return; }
         submitButton.disabled = true; submitButton.textContent = '저장 중…'; notice.classList.remove('error');
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { location.href = 'login.html?next=create-debate.html'; return; }
