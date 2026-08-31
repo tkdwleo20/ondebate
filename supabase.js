@@ -99,8 +99,15 @@ document.addEventListener('click', async event => {
   const startLink = event.target.closest('a[href="login.html?next=create-debate.html"]');
   if (!startLink || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   event.preventDefault();
-  const { data: { user } } = await supabase.auth.getUser();
-  location.href = user ? 'create-debate.html' : 'login.html?next=create-debate.html';
+  try {
+    // getSession reads the locally stored session first, so a temporarily busy
+    // auth server cannot make the start button appear unresponsive.
+    const { data: { session } } = await supabase.auth.getSession();
+    location.href = session?.user ? 'create-debate.html' : 'login.html?next=create-debate.html';
+  } catch (_) {
+    // The safe fallback remains available even if browser storage is blocked.
+    location.href = 'login.html?next=create-debate.html';
+  }
 });
 
 // Keep the shared header navigation consistent across every existing page.
@@ -127,6 +134,20 @@ document.addEventListener('click', event => {
 
 let profilePromise = null;
 const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+const profileCacheKey = userId => `ondebate_profile_${userId}`;
+
+function readCachedProfile(userId) {
+  try {
+    const cached = sessionStorage.getItem(profileCacheKey(userId));
+    const profile = cached ? JSON.parse(cached) : null;
+    return profile?.id === userId && typeof profile.nickname === 'string' ? profile : null;
+  } catch (_) { return null; }
+}
+
+function cacheProfile(profile) {
+  try { sessionStorage.setItem(profileCacheKey(profile.id), JSON.stringify(profile)); }
+  catch (_) { /* storage is optional and only improves short outage recovery */ }
+}
 
 // A busy or briefly reconnecting network must not make an existing member look
 // like a new member. Confirm an absent profile across retries; surface actual
@@ -140,10 +161,14 @@ export async function getProfile({ refresh = false } = {}) {
     let lastError = null;
     for (let attempt = 0; attempt < 3; attempt += 1) {
       const { data, error } = await supabase.from('profiles').select('id,nickname,points').eq('id', user.id).maybeSingle();
-      if (data) return data;
+      if (data) { cacheProfile(data); return data; }
       if (error) lastError = error;
       if (attempt < 2) await wait(450 * (attempt + 1));
     }
+    // A profile that was already confirmed in this browser is safer than
+    // sending a signed-in member to nickname setup during a brief outage.
+    const cached = readCachedProfile(user.id);
+    if (cached) return cached;
     if (lastError) throw lastError;
     return null;
   })();
@@ -227,20 +252,54 @@ async function openNotificationPanel(target, userId) {
 export async function mountAuthState(targetId) {
   const target = document.getElementById(targetId);
   if (!target || target.dataset.authMounted === 'true') return;
+  const showGuestLink = () => {
+    target.replaceChildren();
+    const login = document.createElement('a');
+    login.className = 'account-link';
+    login.href = 'login.html';
+    login.textContent = '로그인';
+    target.append(login);
+    target.style.visibility = 'visible';
+  };
+  const showChecking = () => {
+    target.replaceChildren();
+    const loading = document.createElement('span');
+    loading.className = 'account-link';
+    loading.textContent = '계정 확인 중…';
+    target.append(loading);
+    target.style.visibility = 'visible';
+  };
+  const retrySoon = () => {
+    if (target.dataset.authRetryPending) return;
+    target.dataset.authRetryPending = 'true';
+    window.setTimeout(() => {
+      delete target.dataset.authRetryPending;
+      mountAuthState(targetId);
+    }, 2500);
+  };
   let user;
+  let localSession = null;
+  try { ({ data: { session: localSession } } = await supabase.auth.getSession()); }
+  catch (_) { /* show the normal guest link below */ }
   try { ({ data: { user } } = await supabase.auth.getUser()); }
-  catch (_) { target.style.visibility = 'visible'; return; }
-  if (!user) { target.style.visibility = 'visible'; return; }
+  catch (_) {
+    // Previously this left a visibility:hidden header empty during short
+    // Supabase outages. Keep a usable state on screen and retry silently.
+    if (localSession?.user) { showChecking(); retrySoon(); }
+    else showGuestLink();
+    return;
+  }
+  if (!user && localSession?.user) {
+    showChecking();
+    retrySoon();
+    return;
+  }
+  if (!user) { showGuestLink(); return; }
   let profile;
   try { profile = await getProfile(); }
   catch (_) {
-    target.replaceChildren();
-    const loading = document.createElement('span'); loading.className = 'account-link'; loading.textContent = '계정 확인 중…';
-    target.append(loading); target.style.visibility = 'visible';
-    if (!target.dataset.authRetryPending) {
-      target.dataset.authRetryPending = 'true';
-      window.setTimeout(() => { delete target.dataset.authRetryPending; mountAuthState(targetId); }, 2500);
-    }
+    showChecking();
+    retrySoon();
     return;
   }
   if (!profile || /^토론자[0-9a-f]{6}$/i.test(profile.nickname)) {
