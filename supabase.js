@@ -8,7 +8,12 @@ const temporaryAuthKey = 'ondebate-temporary-auth';
 // page and remove it again while the tab is being left or closed.
 const temporaryAuth = sessionStorage.getItem(temporaryAuthKey);
 if (temporaryAuth && !localStorage.getItem(authStorageKey)) localStorage.setItem(authStorageKey, temporaryAuth);
-if (temporaryAuth) addEventListener('pagehide', () => localStorage.removeItem(authStorageKey));
+if (temporaryAuth) addEventListener('pagehide', () => {
+  // The user may turn automatic login back on from the login page during
+  // this document's lifetime. Check the current value rather than the
+  // value captured when this module first loaded.
+  if (sessionStorage.getItem(temporaryAuthKey)) localStorage.removeItem(authStorageKey);
+});
 export const supabase = createClient(
   'https://sczgelfdrlkenlshthsa.supabase.co',
   'sb_publishable_cJv4iU4Aod6RVY8se0TiZg_oXS0Ukdk'
