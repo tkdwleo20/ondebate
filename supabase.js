@@ -20,6 +20,7 @@ function mountBrandLogo() {
   brand.setAttribute('aria-label', 'OnDebate 홈');
   brand.style.cssText += ';display:inline-flex;align-items:center;width:122px;height:34px;flex:none';
   brand.innerHTML = '<svg viewBox="42 12 276 66" role="img" aria-label="OnDebate 로고" style="display:block;width:100%;height:100%"><text x="180" y="66" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="54" font-weight="700" letter-spacing="-4"><tspan fill="#222">On</tspan><tspan fill="#e64b3c">Debate</tspan></text></svg>';
+  brand.style.visibility = 'visible';
   if (!document.getElementById('brand-logo-style')) {
     const style = document.createElement('style');
     style.id = 'brand-logo-style';
