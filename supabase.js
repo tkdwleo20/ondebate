@@ -18,6 +18,12 @@ export const supabase = createClient(
   'https://sczgelfdrlkenlshthsa.supabase.co',
   'sb_publishable_cJv4iU4Aod6RVY8se0TiZg_oXS0Ukdk'
 );
+// Also restore it in the Supabase client itself. This makes a session-only
+// login available immediately after navigating away from the login page.
+if (temporaryAuth) {
+  try { await supabase.auth.setSession(JSON.parse(temporaryAuth)); }
+  catch (_) { sessionStorage.removeItem(temporaryAuthKey); }
+}
 
 // Level 1 covers 0–1,999P. From 2,000P onward, every additional 1,000P
 // increases the displayed level by one.
