@@ -1,28 +1,28 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // Publishable key only. Never place a service_role or secret key in this file.
+const supabaseUrl = 'https://sczgelfdrlkenlshthsa.supabase.co';
+const supabasePublishableKey = 'sb_publishable_cJv4iU4Aod6RVY8se0TiZg_oXS0Ukdk';
 const authStorageKey = 'sb-sczgelfdrlkenlshthsa-auth-token';
-const temporaryAuthKey = 'ondebate-temporary-auth';
-// When “자동 로그인” is off, retain the session only in the current tab.
-// Supabase itself uses localStorage, so restore the temporary token for this
-// page and remove it again while the tab is being left or closed.
-const temporaryAuth = sessionStorage.getItem(temporaryAuthKey);
-if (temporaryAuth && !localStorage.getItem(authStorageKey)) localStorage.setItem(authStorageKey, temporaryAuth);
-if (temporaryAuth) addEventListener('pagehide', () => {
-  // The user may turn automatic login back on from the login page during
-  // this document's lifetime. Check the current value rather than the
-  // value captured when this module first loaded.
-  if (sessionStorage.getItem(temporaryAuthKey)) localStorage.removeItem(authStorageKey);
-});
-export const supabase = createClient(
-  'https://sczgelfdrlkenlshthsa.supabase.co',
-  'sb_publishable_cJv4iU4Aod6RVY8se0TiZg_oXS0Ukdk'
-);
-// Also restore it in the Supabase client itself. This makes a session-only
-// login available immediately after navigating away from the login page.
-if (temporaryAuth) {
-  try { await supabase.auth.setSession(JSON.parse(temporaryAuth)); }
-  catch (_) { sessionStorage.removeItem(temporaryAuthKey); }
+const sessionOnlyKey = 'ondebate-session-only';
+function createAuthClient(storage) {
+  return createClient(supabaseUrl, supabasePublishableKey, { auth: { storage, persistSession:true, autoRefreshToken:true, detectSessionInUrl:true } });
+}
+// A session-only login is stored in sessionStorage from the beginning, rather
+// than moving an already-created session between browser storage areas.
+export const supabase = createAuthClient(sessionStorage.getItem(sessionOnlyKey) === 'true' ? sessionStorage : localStorage);
+
+export async function signInWithEmailPassword(email, password, automaticLogin) {
+  let client;
+  if (automaticLogin) {
+    sessionStorage.removeItem(sessionOnlyKey);
+    client = createAuthClient(localStorage);
+  } else {
+    sessionStorage.setItem(sessionOnlyKey, 'true');
+    localStorage.removeItem(authStorageKey);
+    client = createAuthClient(sessionStorage);
+  }
+  return client.auth.signInWithPassword({ email, password });
 }
 
 // Level 1 covers 0–1,999P. From 2,000P onward, every additional 1,000P
@@ -172,7 +172,7 @@ export async function mountAuthState(targetId) {
   document.addEventListener('click', event => { if (!target.contains(event.target)) panel.classList.remove('open'); });
   logout.addEventListener('click', async () => {
     await supabase.auth.signOut();
-    sessionStorage.removeItem(temporaryAuthKey);
+    sessionStorage.removeItem(sessionOnlyKey);
     location.href = 'index.html';
   });
 }
