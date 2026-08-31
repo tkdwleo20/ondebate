@@ -244,6 +244,7 @@
       document.getElementById('cancel-report').addEventListener('click', () => { reportPanel.hidden = true; reportReasonType.value = ''; reportReason.value = ''; reportReason.required = false; reportDetailOptional.textContent = '(선택)'; });
       reportPanel.addEventListener('submit', async event => { event.preventDefault(); const reasonType = reportReasonType.value; const reasonDetail = reportReason.value.trim(); if (!reasonType) { alert('신고 사유를 선택해 주세요.'); return; } if (reasonType === '기타' && reasonDetail.length < 5) { alert('기타 사유는 상세 설명을 5자 이상 입력해 주세요.'); return; } if (reasonDetail.length > 1000) { alert('상세 설명은 1,000자 이내로 입력해 주세요.'); return; } const { error } = await supabase.rpc('submit_debate_report', { p_debate_id:debateId, p_reason_type:reasonType, p_reason_detail:reasonDetail || null, p_target_side:reportedUser.value }); if (error) { alert(`신고하지 못했습니다: ${error.message}`); return; } reportPanel.hidden = true; reportReasonType.value = ''; reportReason.value = ''; reportReason.required = false; reportDetailOptional.textContent = '(선택)'; alert('신고가 접수되었습니다.'); });
     </script>
+    <script src="footer.js"></script>
   </body>
 </html>
 
