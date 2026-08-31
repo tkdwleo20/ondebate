@@ -18,12 +18,12 @@ function mountBrandLogo() {
   if (!brand || brand.dataset.logoMounted) return;
   brand.dataset.logoMounted = 'true';
   brand.setAttribute('aria-label', 'OnDebate 홈');
-  brand.style.cssText += ';display:inline-flex;align-items:center;width:106px;height:30px;flex:none';
+  brand.style.cssText += ';display:inline-flex;align-items:center;width:122px;height:34px;flex:none';
   brand.innerHTML = '<svg viewBox="42 12 276 66" role="img" aria-label="OnDebate 로고" style="display:block;width:100%;height:100%"><text x="180" y="66" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="54" font-weight="700" letter-spacing="-4"><tspan fill="#222">On</tspan><tspan fill="#e64b3c">Debate</tspan></text></svg>';
   if (!document.getElementById('brand-logo-style')) {
     const style = document.createElement('style');
     style.id = 'brand-logo-style';
-    style.textContent = '@media(max-width:650px){header .brand{width:90px!important;height:26px!important}}';
+    style.textContent = '@media(max-width:650px){header .brand{width:104px!important;height:29px!important}}';
     document.head.append(style);
   }
 }
