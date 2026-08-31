@@ -5,6 +5,14 @@ const supabaseUrl = 'https://sczgelfdrlkenlshthsa.supabase.co';
 const supabasePublishableKey = 'sb_publishable_cJv4iU4Aod6RVY8se0TiZg_oXS0Ukdk';
 export const supabase = createClient(supabaseUrl, supabasePublishableKey);
 
+// Keep the legal notice available on every page that uses the shared client.
+// Pages that already load footer.js directly are ignored by the footer itself.
+if (typeof document !== 'undefined') {
+  const mountFooter = () => import('./footer.js');
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountFooter, { once:true });
+  else mountFooter();
+}
+
 // Level 1 covers 0–1,999P. From 2,000P onward, every additional 1,000P
 // increases the displayed level by one.
 export function levelForPoints(points = 0) {
