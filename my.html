@@ -39,6 +39,7 @@
       await Promise.all([loadMyDebates(), loadMyComments()]);
       document.getElementById('withdraw-button').addEventListener('click', async () => { if (!confirm('정말 탈퇴하시겠습니까?\n\n계정 정보는 삭제되지만 작성한 토론·발언·댓글은 탈퇴한 사용자로 남습니다.')) return; const button = document.getElementById('withdraw-button'); button.disabled = true; button.textContent = '탈퇴 처리 중…'; const { error } = await supabase.functions.invoke('delete-account'); if (error) { alert(`탈퇴하지 못했습니다: ${error.message}`); button.disabled = false; button.textContent = '회원 탈퇴하기'; return; } await supabase.auth.signOut(); location.href = 'index.html'; });
     </script>
+    <script src="footer.js"></script>
   </body>
 </html>
 
