@@ -23,7 +23,7 @@
     <section class="section" id="notifications"><p class="empty">알림을 불러오는 중입니다.</p></section>
   </main>
   <script type="module">
-    import { supabase, mountAuthState } from './supabase.js';
+    import { supabase, mountAuthState } from './supabase.js?v=brand-logo-3';
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
