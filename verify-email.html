@@ -20,6 +20,7 @@
       form.addEventListener('submit', async event => { event.preventDefault(); const button = form.querySelector('button'); button.disabled = true; button.textContent = '확인 중…'; message.className = 'message'; const { error } = await supabase.auth.verifyOtp({ email, token: document.getElementById('code').value.trim(), type: 'signup' }); if (error) { showError('인증 코드를 다시 확인해 주세요.'); button.disabled = false; button.textContent = '인증하고 가입 완료'; return; } location.href = `nickname.html?next=${encodeURIComponent(next)}`; });
       document.getElementById('resend').addEventListener('click', async event => { const button = event.currentTarget; button.disabled = true; button.textContent = '보내는 중…'; const { error } = await supabase.auth.resend({ type:'signup', email }); if (error) showError(error.message); else { message.textContent = '새 인증 코드를 보냈습니다.'; message.className = 'message show'; } button.disabled = false; button.textContent = '인증 코드 다시 보내기'; });
     </script>
+    <script src="footer.js"></script>
   </body>
 </html>
 
