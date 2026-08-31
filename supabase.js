@@ -5,6 +5,20 @@ const supabaseUrl = 'https://sczgelfdrlkenlshthsa.supabase.co';
 const supabasePublishableKey = 'sb_publishable_cJv4iU4Aod6RVY8se0TiZg_oXS0Ukdk';
 export const supabase = createClient(supabaseUrl, supabasePublishableKey);
 
+// A random browser ID lets us count one anonymous visitor per Korea-standard
+// calendar day. It does not contain an email, nickname, or account identifier.
+function recordSiteVisit() {
+  try {
+    let visitorKey = localStorage.getItem('ondebate_visitor_key');
+    if (!visitorKey) {
+      visitorKey = crypto.randomUUID();
+      localStorage.setItem('ondebate_visitor_key', visitorKey);
+    }
+    supabase.rpc('record_site_visit', { p_visitor_key: visitorKey }).catch(() => {});
+  } catch (_) { /* private browsing or an older browser may block storage */ }
+}
+if (typeof window !== 'undefined') recordSiteVisit();
+
 if (typeof document !== 'undefined' && !document.querySelector('link[rel="icon"]')) {
   const icon = document.createElement('link');
   icon.rel = 'icon'; icon.type = 'image/svg+xml'; icon.href = 'ondebate-logo.svg';
