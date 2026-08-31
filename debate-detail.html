@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>청소년의 스마트폰 사용은 법으로 제한해야 한다 — OnDebate</title>
+    <title>토론 상세 — OnDebate</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -226,7 +226,7 @@
         currentUser = user;
         if (debate) {
           activeDebate = debate;
-          document.getElementById('topic-title').textContent = debate.title; document.getElementById('topic-category').textContent = debate.category; const remain = Math.max(0, new Date(debate.ends_at) - Date.now()); const ended = remain === 0 || debate.status === 'ended'; const state = document.getElementById('debate-state'); state.textContent = ended ? '종료된 토론' : '진행 중'; state.className = ended ? 'ended-state' : 'live'; document.getElementById('remaining-time').textContent = ended ? '토론이 종료되었습니다' : `마감까지 ${Math.floor(remain / 3600000)}시간 ${Math.floor(remain % 3600000 / 60000)}분`; document.getElementById('created-time').textContent = `작성 ${new Date(debate.created_at).toLocaleString('ko-KR', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' })}`;
+          document.title = `${debate.title} — OnDebate`; document.getElementById('topic-title').textContent = debate.title; document.getElementById('topic-category').textContent = debate.category; const remain = Math.max(0, new Date(debate.ends_at) - Date.now()); const ended = remain === 0 || debate.status === 'ended'; const state = document.getElementById('debate-state'); state.textContent = ended ? '종료된 토론' : '진행 중'; state.className = ended ? 'ended-state' : 'live'; document.getElementById('remaining-time').textContent = ended ? '토론이 종료되었습니다' : `마감까지 ${Math.floor(remain / 3600000)}시간 ${Math.floor(remain % 3600000 / 60000)}분`; document.getElementById('created-time').textContent = `작성 ${new Date(debate.created_at).toLocaleString('ko-KR', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' })}`;
           const { data: views } = await supabase.rpc('record_debate_view', { p_debate_id: debateId, p_viewer_key:viewerKey }); try { await supabase.rpc('settle_debate_points', { p_debate_id:debateId }); } catch (_) { /* point migration may not be installed yet */ } document.getElementById('view-count').textContent = `조회 ${views ?? debate.view_count ?? 0}`;
           const messages = (debate.messages || []).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
           const [messageResult, debateResult, messageLikes, messageCommentLikes, debateLikes, votesResult] = await Promise.all([loadMessageComments(), loadDebateComments(), user ? supabase.from('message_likes').select('message_id').eq('user_id', user.id) : Promise.resolve({ data:[] }), user ? supabase.from('message_comment_likes').select('comment_id').eq('user_id', user.id) : Promise.resolve({ data:[] }), user ? supabase.from('debate_comment_likes').select('comment_id').eq('user_id', user.id) : Promise.resolve({ data:[] }), supabase.rpc('get_debate_vote_summary', { p_debate_id:debateId })]);
