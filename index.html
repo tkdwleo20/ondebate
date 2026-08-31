@@ -33,7 +33,7 @@
   </head>
   <body>
     <header>
-      <a class="brand" href="#">On<i>Debate</i></a>
+      <a class="brand" style="visibility:hidden" href="#">On<i>Debate</i></a>
       <nav><a href="#popular"><span class="desktop-nav">인기 토론</span><span class="mobile-nav">인기 토론</span></a><a href="#categories">카테고리</a></nav>
       <a class="start" href="login.html?next=create-debate.html">토론 시작하기</a><span id="auth-area" style="visibility:hidden"><a class="account-link" href="login.html">로그인</a></span>
     </header>
@@ -53,7 +53,7 @@
     </main>
     <a class="mobile-start" href="login.html?next=create-debate.html">＋ 토론 시작하기</a>
     <script type="module">
-      import { supabase, mountAuthState } from './supabase.js?v=brand-logo-3';
+      import { supabase, mountAuthState } from './supabase.js?v=brand-logo-4';
       mountAuthState('auth-area');
       const list = document.getElementById('popular-list');
       const categoryList = document.getElementById('category-list');
