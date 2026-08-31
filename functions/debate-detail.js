@@ -26,9 +26,9 @@ async function getDebatePreview(id) {
 
 export async function onRequestGet(context) {
   const url = new URL(context.request.url);
-  // Continue through Pages' native extensionless-route handling. Fetching
-  // debate-detail.html through ASSETS would redirect back to this function.
-  const assetResponse = await context.next();
+  // Ask the static asset binding for the original clean URL. This bypasses
+  // function routing while preserving Pages' extensionless URL resolution.
+  const assetResponse = await context.env.ASSETS.fetch(context.request);
   const debate = await getDebatePreview(url.searchParams.get('id') || '').catch(() => null);
   if (!debate || !assetResponse.headers.get('content-type')?.includes('text/html')) return assetResponse;
 
