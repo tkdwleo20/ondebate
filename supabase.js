@@ -5,6 +5,12 @@ const supabaseUrl = 'https://sczgelfdrlkenlshthsa.supabase.co';
 const supabasePublishableKey = 'sb_publishable_cJv4iU4Aod6RVY8se0TiZg_oXS0Ukdk';
 export const supabase = createClient(supabaseUrl, supabasePublishableKey);
 
+if (typeof document !== 'undefined' && !document.querySelector('link[rel="icon"]')) {
+  const icon = document.createElement('link');
+  icon.rel = 'icon'; icon.type = 'image/svg+xml'; icon.href = 'ondebate-logo.svg';
+  document.head.append(icon);
+}
+
 // Keep the legal notice available on every page that uses the shared client.
 // It is intentionally inlined here because static asset requests can be
 // rewritten to the SPA entry point by the Pages deployment.
