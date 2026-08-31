@@ -18,6 +18,9 @@ security definer
 set search_path = public
 as $$
 begin
+  delete from public.daily_site_visitors
+  where visit_day < (timezone('Asia/Seoul', now())::date - interval '13 months')::date;
+
   insert into public.daily_site_visitors (visit_day, visitor_key)
   values (timezone('Asia/Seoul', now())::date, p_visitor_key)
   on conflict (visit_day, visitor_key) do update
