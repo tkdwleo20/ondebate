@@ -32,8 +32,8 @@
     import { supabase, mountAuthState } from './supabase.js?v=analytics-1';
     const labels={visitors:'순방문자',active_users:'활동 이용자',new_signups:'신규 가입자',debates_created:'토론 개설',messages_created:'발언',comments_created:'댓글',votes_created:'투표'};
     const fields=Object.keys(labels);
-    // 발언·댓글은 일별 상세와 추이에서만 제공하고, 상단의 오늘 요약에서는 제외합니다.
-    const summaryFields=fields.filter(f=>!['messages_created','comments_created'].includes(f));
+    // 댓글은 일별 상세와 추이에서만 제공하고, 상단의 오늘 요약에서는 제외합니다.
+    const summaryFields=fields.filter(f=>f!=='comments_created');
     let data=[], selected='visitors';
     const number=n=>new Intl.NumberFormat('ko-KR').format(Number(n||0));
     const dateText=d=>new Intl.DateTimeFormat('ko-KR',{month:'numeric',day:'numeric',weekday:'short',timeZone:'Asia/Seoul'}).format(new Date(`${d}T00:00:00+09:00`));
