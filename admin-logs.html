@@ -17,7 +17,7 @@
     <section class="section"><h2>전체 기록</h2><div id="logs"><p class="empty">운영로그를 불러오는 중입니다.</p></div><button class="more" id="more" type="button" hidden>더 보기</button></section>
   </main>
   <script type="module">
-    import {supabase,mountAuthState} from './supabase.js?v=operation-log-1';
+    import {supabase,mountAuthState} from './supabase.js?v=notification-titles-1';
     const list=document.getElementById('logs'),more=document.getElementById('more');let offset=0;const pageSize=50;
     const labels={debate_hidden:'게시물 숨김',debate_unhidden:'게시물 숨김 해제',debate_deleted:'게시물 삭제',report_processed:'신고 처리',policy_changed:'정책·제재 기준 변경'};
     const escape=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
@@ -28,4 +28,3 @@
     const {data:{user}}=await supabase.auth.getUser();if(!user){location.href='login.html?next=admin-logs.html'}else{const {data:isAdmin}=await supabase.rpc('is_admin');if(!isAdmin){location.href='my.html'}else{mountAuthState('auth-area');load()}}
   </script>
 </body></html>
-
