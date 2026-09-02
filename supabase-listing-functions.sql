@@ -86,10 +86,15 @@ language sql stable security definer set search_path = public as $$
     coalesce((select m.body from public.debate_messages m where m.debate_id = d.id order by m.created_at asc limit 1), '') as opening_preview,
     count(v.id) as vote_count
   from public.debates d
-  join public.votes v on v.debate_id = d.id and v.created_at >= now() - make_interval(hours => least(greatest(p_hours, 1), 24 * 31))
+  join public.votes v on v.debate_id = d.id
   where d.status <> 'hidden'
   group by d.id
-  order by count(v.id) desc, d.created_at desc
+  having count(v.id) filter (
+    where v.created_at >= now() - make_interval(hours => least(greatest(p_hours, 1), 24 * 31))
+  ) > 0
+  order by count(v.id) filter (
+    where v.created_at >= now() - make_interval(hours => least(greatest(p_hours, 1), 24 * 31))
+  ) desc, d.created_at desc
   limit 5;
 $$;
 
