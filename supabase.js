@@ -227,10 +227,21 @@ function groupNotifications(items) {
   return [...groups.values()];
 }
 
+function notificationTitle(title) {
+  const clean = String(title || '').replace(/\s+/g, ' ').trim();
+  return clean.length > 20 ? `${clean.slice(0, 20)}…` : clean;
+}
+
 function groupedNotificationText(item) {
-  if (item.count < 2) return item.body;
-  if (item.activity === 'message') return `참여한 토론에 상대방의 새 발언 ${item.count}개`;
-  if (item.activity === 'comment') return `해당 토론에 새 댓글 ${item.count}개`;
+  const subject = notificationTitle(item.debate_title);
+  if (item.count < 2) {
+    if (!subject || !item.activity || String(item.body || '').startsWith('「')) return item.body;
+    const preview = String(item.body || '').replace(/^(상대방의 새 발언|내 발언에 새 댓글|내 토론에 새 댓글|작성한 발언에 새 댓글이 등록되었습니다|작성한 토론에 새 댓글이 등록되었습니다)\s*:?\s*/, '');
+    return `「${subject}」에 ${item.activity === 'message' ? '상대방의 새 발언' : '새 댓글'}${preview ? `: ${preview}` : ''}`;
+  }
+  if (!subject) return item.activity === 'message' ? `참여한 토론에 상대방의 새 발언 ${item.count}개` : `해당 토론에 새 댓글 ${item.count}개`;
+  if (item.activity === 'message') return `「${subject}」에 상대방의 새 발언 ${item.count}개`;
+  if (item.activity === 'comment') return `「${subject}」에 새 댓글 ${item.count}개`;
   return item.body;
 }
 
@@ -244,6 +255,10 @@ async function openNotificationPanel(target, userId) {
   const head = document.createElement('div'); head.className = 'notification-panel-head'; const title = document.createElement('div'); title.className = 'notification-panel-title'; title.textContent = '알림'; const clear = document.createElement('button'); clear.type = 'button'; clear.className = 'notification-clear'; clear.textContent = '모두 지우기'; clear.disabled = !items?.length; head.append(title, clear); panel.append(head);
   clear.addEventListener('click', async () => { if (!items?.length || !confirm('알림을 모두 지울까요?')) return; clear.disabled = true; const { error: clearError } = await supabase.rpc('clear_my_notifications'); if (clearError) { alert('알림을 지우지 못했습니다.'); clear.disabled = false; return; } panel.classList.remove('open'); panel.replaceChildren(); await refreshNotificationBadge(target, userId); });
   if (!items?.length) { const empty = document.createElement('div'); empty.className = 'notification-empty'; empty.textContent = '새 알림이 없습니다.'; panel.append(empty); return; }
+  const debateIds = [...new Set(items.map(item => item.debate_id).filter(Boolean))];
+  const { data: debates } = debateIds.length ? await supabase.from('debates').select('id,title').in('id', debateIds) : { data:[] };
+  const titles = new Map((debates || []).map(debate => [debate.id, debate.title]));
+  items.forEach(item => { item.debate_title = titles.get(item.debate_id) || ''; });
   const formatter = new Intl.DateTimeFormat('ko-KR', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
   groupNotifications(items).slice(0,8).forEach(item => { const row = document.createElement('a'); row.className = 'notification-item'; row.href = item.debate_id ? `debate-detail.html?id=${item.debate_id}` : 'index.html'; row.textContent = groupedNotificationText(item); if (item.type === 'report_result') { row.style.cssText = 'border-left:3px solid #d85a50;background:#fff7f5;color:#8f372f;font-weight:700'; const warning = document.createElement('span'); warning.textContent = '⚠ '; warning.setAttribute('aria-label', '경고'); row.prepend(warning); } const time = document.createElement('time'); time.textContent = formatter.format(new Date(item.created_at)); row.append(time); panel.append(row); });
   if (items?.length) { await supabase.from('notifications').update({ is_read:true }).eq('recipient_id', userId).is('deleted_at', null); refreshNotificationBadge(target, userId); }
@@ -330,4 +345,3 @@ export async function mountAuthState(targetId) {
     location.href = 'index.html';
   });
 }
-
