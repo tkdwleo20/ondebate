@@ -51,7 +51,7 @@
     </main>
     <a class="mobile-start" href="login.html?next=create-debate.html">＋ 토론 시작하기</a>
     <script type="module">
-      import { supabase, getProfile, levelForPoints, mountAuthState } from './supabase.js?v=auth-resilience-2';
+      import { supabase, getProfile, levelForPoints, mountAuthState } from './supabase.js?v=notification-titles-1';
       mountAuthState('auth-area');
       const detailParams = new URLSearchParams(location.search);
       const debateId = detailParams.get('id');
@@ -249,4 +249,3 @@
     <script src="footer.js"></script>
   </body>
 </html>
-
