@@ -156,11 +156,15 @@
       }
       .columns {
         display: grid;
+        grid-template-columns: minmax(0, 1fr);
         gap: 18px;
+        min-width: 0;
       }
       .section {
         background: #fff;
         border: 1px solid var(--line);
+        min-width: 0;
+        width: 100%;
       }
       h2 {
         margin: 0;
