@@ -7,7 +7,7 @@
   </head>
   <body><main class="card"><p id="message">카카오 로그인 정보를 확인하고 있습니다…</p></main>
     <script type="module">
-      import { supabase } from './supabase.js?v=notification-titles-2';
+      import { supabase } from './supabase.js?v=welcome-notification-1';
       const message = document.getElementById('message'); const params = new URLSearchParams(location.search); const code = params.get('code'); const state = params.get('state');
       function fail(text) { message.textContent = text; message.className = 'error'; }
       if (params.get('error')) fail('카카오 로그인이 취소되었거나 진행할 수 없습니다. 로그인 화면에서 다시 시도해 주세요.');
@@ -26,3 +26,4 @@
     <script src="footer.js"></script>
   </body>
 </html>
+
