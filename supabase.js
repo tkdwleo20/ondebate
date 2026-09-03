@@ -1,5 +1,16 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+export async function hasCurrentPolicyConsent() {
+  const { data, error } = await supabase.rpc('has_current_policy_consent');
+  if (error) throw error;
+  return data === true;
+}
+
+export async function acceptCurrentPolicies(source) {
+  const { error } = await supabase.rpc('accept_current_policies', { p_source:source });
+  if (error) throw error;
+}
+
 // Publishable key only. Never place a service_role or secret key in this file.
 const supabaseUrl = 'https://sczgelfdrlkenlshthsa.supabase.co';
 const supabasePublishableKey = 'sb_publishable_cJv4iU4Aod6RVY8se0TiZg_oXS0Ukdk';
