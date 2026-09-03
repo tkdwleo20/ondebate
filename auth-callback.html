@@ -9,15 +9,24 @@
   <body>
     <span id="message">로그인 정보를 확인하고 있습니다…</span>
     <script type="module">
-      import { supabase, getProfile } from './supabase.js?v=policy-consent-1';
+      import { supabase } from './supabase.js?v=policy-consent-1';
       const message = document.getElementById('message');
       const requested = new URLSearchParams(location.search).get('next') || 'index.html';
       const next = /^[a-z0-9][a-z0-9-]*\.html(?:[?#].*)?$/i.test(requested) ? requested : 'index.html';
-      
+      async function waitForUser() {
+        for (let attempt = 0; attempt < 30; attempt += 1) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) return session.user;
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        return null;
+      }
+      const user = await waitForUser();
       if (!user) location.replace('login.html?next=' + encodeURIComponent(next));
       else {
         try {
-          const profile = await getProfile();
+          const { data: profile, error } = await supabase.from('profiles').select('id,nickname').eq('id', user.id).maybeSingle();
+          if (error) throw error;
           if (!profile || /^토론자[0-9a-f]{6}$/i.test(profile.nickname)) location.replace('nickname.html?next=' + encodeURIComponent(next));
           else location.replace(next);
         } catch (_) { message.textContent = '로그인 정보를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.'; }
