@@ -259,7 +259,7 @@ async function openNotificationPanel(target, userId) {
   const titles = new Map((debates || []).map(debate => [debate.debate_id, debate.title]));
   items.forEach(item => { item.debate_title = titles.get(item.debate_id) || ''; });
   const formatter = new Intl.DateTimeFormat('ko-KR', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
-  groupNotifications(items).slice(0,8).forEach(item => { const row = document.createElement('a'); row.className = 'notification-item'; row.href = item.debate_id ? `debate-detail.html?id=${item.debate_id}` : 'index.html'; row.textContent = groupedNotificationText(item); if (item.type === 'report_result') { row.style.cssText = 'border-left:3px solid #d85a50;background:#fff7f5;color:#8f372f;font-weight:700'; const warning = document.createElement('span'); warning.textContent = '⚠ '; warning.setAttribute('aria-label', '경고'); row.prepend(warning); } const time = document.createElement('time'); time.textContent = formatter.format(new Date(item.created_at)); row.append(time); panel.append(row); });
+  groupNotifications(items).slice(0,8).forEach(item => { const row = document.createElement('a'); row.className = 'notification-item'; row.href = item.type === 'welcome' ? 'create-debate.html' : item.debate_id ? `debate-detail.html?id=${item.debate_id}` : 'index.html'; row.textContent = groupedNotificationText(item); if (item.type === 'report_result') { row.style.cssText = 'border-left:3px solid #d85a50;background:#fff7f5;color:#8f372f;font-weight:700'; const warning = document.createElement('span'); warning.textContent = '⚠ '; warning.setAttribute('aria-label', '경고'); row.prepend(warning); } const time = document.createElement('time'); time.textContent = formatter.format(new Date(item.created_at)); row.append(time); panel.append(row); });
   if (items?.length) { await supabase.from('notifications').update({ is_read:true }).eq('recipient_id', userId).is('deleted_at', null); refreshNotificationBadge(target, userId); }
 }
 
@@ -344,3 +344,4 @@ export async function mountAuthState(targetId) {
     location.href = 'index.html';
   });
 }
+
