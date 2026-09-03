@@ -1,8 +1,23 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = { 'Access-Control-Allow-Origin': 'https://ondebate.pages.dev', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' }
+const allowedOrigins = new Set([
+  'https://ondebate.co.kr',
+  'https://www.ondebate.co.kr',
+  'https://ondebate.pages.dev',
+])
+
+function corsHeadersFor(request: Request) {
+  const origin = request.headers.get('Origin') ?? ''
+  return {
+    ...(allowedOrigins.has(origin) ? { 'Access-Control-Allow-Origin': origin } : {}),
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
+  }
+}
 
 Deno.serve(async (request) => {
+  const corsHeaders = corsHeadersFor(request)
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   try {
     const authHeader = request.headers.get('Authorization') ?? ''
