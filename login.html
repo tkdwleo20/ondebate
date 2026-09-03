@@ -23,7 +23,7 @@
       const status = document.getElementById('status');
       async function signIn(provider) {
         const next = new URLSearchParams(location.search).get('next') || 'index.html';
-        const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: new URL(next, location.href).href } });
+        
         if (error) { status.textContent = `로그인 연결을 시작하지 못했습니다: ${error.message}`; status.classList.add('show'); }
       }
       document.getElementById('google').addEventListener('click', () => signIn('google'));
