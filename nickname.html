@@ -15,13 +15,17 @@
     <header><a class="brand" style="visibility:hidden" href="index.html">On<i>Debate</i></a></header>
     <main><section class="card"><h1 id="page-title">닉네임을 정해주세요</h1><p id="page-description">토론과 댓글에서 사용할 이름입니다.</p><form id="nickname-form"><label for="nickname">닉네임</label><div class="nickname-row"><input id="nickname" minlength="2" maxlength="20" required placeholder="2~20자로 입력" autofocus /><button class="check-button" id="check-nickname" type="button">중복 확인</button></div><div class="agreements" id="agreement-group"><label><input id="terms-agree" type="checkbox" /> <a href="terms.html" target="_blank">이용약관</a>에 동의합니다. (필수)</label><label><input id="privacy-agree" type="checkbox" /> <a href="privacy.html" target="_blank">개인정보처리방침</a>에 동의합니다. (필수)</label></div><button class="submit-button" id="submit-button" type="submit">시작하기</button><div class="message" id="message"></div></form></section></main>
     <script type="module">
-      import { supabase, getProfile, saveNickname, changeNickname } from './supabase.js?v=welcome-notification-1';
+      import { supabase, getProfile, saveNickname, changeNickname, hasCurrentPolicyConsent, acceptCurrentPolicies } from './supabase.js?v=policy-consent-1';
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) location.href = 'login.html';
       const profile = await getProfile();
       const params = new URLSearchParams(location.search); const isChange = params.get('mode') === 'change';
       if (isChange && !profile) location.href = 'nickname.html';
-      const needsTermsConsent = !isChange && !user.user_metadata?.terms_accepted_at;
+      let needsTermsConsent = false;
+      if (!isChange) {
+        try { needsTermsConsent = !await hasCurrentPolicyConsent(); }
+        catch (_) { document.getElementById('nickname-form').hidden = true; document.getElementById('page-description').textContent = '동의 정보를 확인하지 못했습니다. 잠시 후 새로고침해 주세요.'; }
+      }
       if (!needsTermsConsent) document.getElementById('agreement-group').hidden = true;
       if (isChange) { document.title = '닉네임 변경 — OnDebate'; document.getElementById('page-title').textContent = '닉네임 변경'; document.getElementById('page-description').textContent = '최초 1회는 언제든 변경할 수 있고, 이후에는 마지막 변경일로부터 3개월 후에 변경할 수 있습니다.'; document.getElementById('submit-button').textContent = '닉네임 변경하기'; }
       if (profile && (!/^토론자[0-9a-f]{6}$/i.test(profile.nickname) || isChange)) document.getElementById('nickname').value = profile.nickname;
@@ -41,11 +45,10 @@
         event.preventDefault(); const nickname = input.value.trim();
         if (checkedNickname !== nickname.toLocaleLowerCase('ko-KR')) { message.textContent = '닉네임 중복 확인을 먼저 해주세요.'; message.classList.remove('success'); message.classList.add('show'); return; }
         if (needsTermsConsent && (!document.getElementById('terms-agree').checked || !document.getElementById('privacy-agree').checked)) { message.textContent = '이용약관과 개인정보처리방침에 모두 동의해 주세요.'; message.classList.remove('success'); message.classList.add('show'); return; }
-        try { if (needsTermsConsent) { const acceptedAt = new Date().toISOString(); const { error } = await supabase.auth.updateUser({ data:{ terms_accepted_at:acceptedAt, privacy_accepted_at:acceptedAt } }); if (error) throw error; } if (isChange) await changeNickname(nickname); else await saveNickname(nickname); location.href = params.get('next') || 'index.html'; }
+        try { if (needsTermsConsent) await acceptCurrentPolicies('oauth_nickname'); if (isChange) await changeNickname(nickname); else await saveNickname(nickname); location.href = params.get('next') || 'index.html'; }
         catch (error) { message.textContent = error.code === '23505' ? '이미 사용 중인 닉네임입니다.' : error.message; message.classList.remove('success'); message.classList.add('show'); }
       });
     </script>
     <script src="footer.js"></script>
   </body>
 </html>
-
