@@ -29,7 +29,7 @@
     <section class="panel"><div class="panel-head"><h2>일별 상세</h2></div><div class="table-wrap"><table><thead><tr><th>날짜</th><th>순방문자</th><th>활동 이용자</th><th>신규 가입</th><th>토론 개설</th><th>발언</th><th>댓글</th><th>투표</th></tr></thead><tbody id="rows"></tbody></table></div></section>
   </main>
   <script type="module">
-    import { supabase, mountAuthState } from './supabase.js?v=notification-titles-1';
+    import { supabase, mountAuthState } from './supabase.js?v=notification-titles-2';
     const labels={visitors:'순방문자',active_users:'활동 이용자',new_signups:'신규 가입자',debates_created:'토론 개설',messages_created:'발언',comments_created:'댓글',votes_created:'투표'};
     const fields=Object.keys(labels);
     // 댓글은 일별 상세와 추이에서만 제공하고, 상단의 오늘 요약에서는 제외합니다.
