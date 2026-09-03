@@ -13,7 +13,7 @@
     <header><a class="brand" style="visibility:hidden" href="index.html">On<i>Debate</i></a></header>
     <main><section class="card"><h1>이메일 인증</h1><p><strong id="email-label"></strong>으로 보낸<br />8자리 인증 코드를 입력해 주세요.</p><form id="verify-form"><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" pattern="[0-9]{8}" required placeholder="00000000" /><button type="submit">인증하고 가입 완료</button></form><div class="message" id="message"></div><button class="resend" id="resend" type="button">인증 코드 다시 보내기</button></section></main>
     <script type="module">
-      import { supabase } from './supabase.js?v=welcome-notification-1';
+      import { supabase } from './supabase.js?v=policy-consent-1';
       const email = new URLSearchParams(location.search).get('email'); const message = document.getElementById('message'); const form = document.getElementById('verify-form');
       const next = new URLSearchParams(location.search).get('next') || 'index.html'; if (!email) location.href = 'signup.html'; document.getElementById('email-label').textContent = email || '';
       function showError(text) { message.textContent = text; message.className = 'message show error'; }
@@ -23,4 +23,6 @@
     <script src="footer.js"></script>
   </body>
 </html>
+
+
 
