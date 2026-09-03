@@ -13,7 +13,7 @@
       const message = document.getElementById('message');
       const requested = new URLSearchParams(location.search).get('next') || 'index.html';
       const next = /^[a-z0-9][a-z0-9-]*\.html(?:[?#].*)?$/i.test(requested) ? requested : 'index.html';
-      const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) location.replace('login.html?next=' + encodeURIComponent(next));
       else {
         try {
