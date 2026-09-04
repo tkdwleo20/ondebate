@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+
+# Account, authoring, and administration pages are not search results.
+Disallow: /login
+Disallow: /signup
+Disallow: /verify-email
+Disallow: /nickname
+Disallow: /auth-callback
+Disallow: /kakao-callback
+Disallow: /my
+Disallow: /notifications
+Disallow: /create-debate
+Disallow: /admin
+Disallow: /admin-posts
+Disallow: /admin-analytics
+Disallow: /admin-logs
+Disallow: /members
+Disallow: /search
+
+Sitemap: https://ondebate.co.kr/sitemap.xml
